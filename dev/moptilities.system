@@ -1,0 +1,23 @@
+#| copyright
+
+See the file COPYING for details
+
+|#
+(in-package :common-lisp-user)
+
+;;; ---------------------------------------------------------------------------
+
+(glu-define-logical-pathname-translations (moptilities)
+  (source))
+
+;;; ---------------------------------------------------------------------------
+
+(define-glu-system moptilities
+  ("moptilities")
+  
+  ;; DEFAULTS
+  :bin-identifiers (:platform :vendor)
+  :nice-name "moptilities"
+  :top-level t)
+
+
