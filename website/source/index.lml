@@ -1,0 +1,49 @@
+;;; -*- Mode: Lisp -*-
+
+(in-package #:lml2)
+
+(html-file-page ("index")
+  (html
+   (:HEAD (:TITLE "Moptilities")
+          ((:LINK :REL "stylesheet" :TYPE "text/css" :HREF "style.css"))
+          ((:META :HTTP-EQUIV "Content-Type" :CONTENT "text/html; charset=ISO-8859-1")))
+   (:BODY
+    ((:DIV :CLASS "header")
+     (:H1 "Moptilities")
+     "Zany and Zippy yet never Oozy")
+    
+    (:H3 "What it is")
+    (:P 
+"Like several other projects on Common-Lisp.net, Moptilities provides a 
+compatibility layer for minor MOP implmentation differences. It also adds
+some handy reflection capabilities. " (rw:link :tinaa) " documentation is " 
+(rw:link :moptilities-tinaa :title "available") ".")
+    
+    (:h3 "Mailing Lists")
+    (:P "Moptilities isn't a separate project at this point but if you have
+questions, comments or concerns, just drop " (rw:link :mail-gwking :title "Gary King")
+" a line.")
+    
+    (:H3 "Where is it")
+    (:P "A Darcs repository is available. The commands are listed below:")
+    (:UL
+     (:LI "darcs get http://common-lisp.net/project/cl-containers/darcs/metatilities"))
+    (:P "Moptilities should also be ASDF installable (but may not be yet...).")
+    
+    
+    (:H3 "What is happening")
+    (:P)
+    ((:TABLE :BORDER "0") 
+     ((:TR :ALIGN "left" :VALIGN "top")
+      ((:TD :WIDTH "100px") "13 Nov 2005")
+      (:TD "Initial setup")))
+    
+    ((:DIV :CLASS "footer") 
+     "Last updated: " 
+     (lml-princ (metatilities:format-date "%A, %e %B %Y" (get-universal-time))))    
+    
+    ((:DIV :CLASS "common-lisp-link")
+     "Back to " ((:A :HREF "http://common-lisp.net/") "Common-lisp.net") ".")
+    
+    ((:DIV :CLASS "check")
+     ((:A :HREF "http://validator.w3.org/check/referer") "Valid XHTML 1.0 Strict")))))
