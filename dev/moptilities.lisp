@@ -301,12 +301,22 @@ class, not an instance of the class.")
            (let* ((indirect-slot? nil)
                   (slot-info 
                    (or (find slot-name (class-direct-slots class)
-                             :key #'ccl:slot-definition-name)
+                             :key #'mopu-slot-definition-name)
                        (and (setf indirect-slot? t)
                             (find slot-name (class-slots class)
-                                  :key #'ccl:slot-definition-name)))))
+                                  :key #'mopu-slot-definition-name)))))
              (values slot-info indirect-slot?))))
 
+;;; ---------------------------------------------------------------------------
+
+(defgeneric mopu-slot-definition-name (slot-def)
+  (:method (slot-def)
+           #+MCL
+           (ccl:slot-definition-name slot-def)
+           #+SBCL
+           (sb-mop:slot-definition-name slot-def)
+           ))
+  
 ;;; ---------------------------------------------------------------------------
 
 (defgeneric mopu-direct-slot-names (class)
@@ -633,6 +643,8 @@ description.  Otherwise signal an error if errorp is t."
 
 ;;; ---------------------------------------------------------------------------
 
+#+No
+;;?? Gary King 2005-11-16: bad lisp, down boy
 (defgeneric (setf class) (class object)
   (:documentation "")
   (:method ((class symbol) (object standard-object))
