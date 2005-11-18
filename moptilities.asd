@@ -17,4 +17,5 @@ See the file COPYING for details
   :description "Common Lisp MOP utilities"
   :long-description "MOP utilities is designed to provide a common interface between lisps and make the MOP easier to use."
 
-  :components ((:file "moptilities")))
+  :components ((:module "dev"
+                        :components ((:file "moptilities")))))
