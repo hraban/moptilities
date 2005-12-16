@@ -1,0 +1,87 @@
+with-unique-names / with-gensyms is very high on the list of must haves
+
+;;; ---------------------------------------------------------------------------
+
+direct-superclasses
+direct-subclasses
+
+\METABANG.MOPTILITIES\ 
+(leaf-class-p (standard-class)) 
+(leaf-class-p (symbol)) 
+(mopu-eql-specializer-p (t)) 
+(mopu-generic-function-methods (t)) 
+(mopu-generic-function-name (t)) 
+(mopu-method-qualifiers (t)) 
+(mopu-method-specializers (t)) 
+(mopu-specializer-direct-generic-functions (t)) 
+(setf class) 
+(subclassp (t t)) 
+all-specializers-of 
+build-generalized-mopu-method 
+class-name-of 
+direct-specializers-of 
+display-methods 
+finalize-class-if-necessary 
+find-slot 
+find-structure 
+generic-function-list 
+in-order-p 
+leaf-class-p 
+leaf-subclasses 
+map-methods 
+map-subclasses 
+mopu-arglist 
+mopu-class-direct-subclasses 
+mopu-class-direct-subclasses-internal 
+mopu-class-direct-superclasses 
+mopu-class-initargs 
+mopu-class-precedence-list 
+mopu-class-slot-information 
+mopu-class-slot-names 
+mopu-direct-slot-names 
+mopu-find-method 
+mopu-find-slot-definition 
+mopu-method-name 
+mopu-reader-method-p 
+mopu-slot-definition-initform 
+mopu-slot-definition-name 
+mopu-writer-method-p 
+remove-methods 
+remove-methods-if 
+show-class-path 
+subclasses 
+subclasses* 
+subclasses* 
+(\METABANG.MOPTILITIES\ (leaf-class-p (standard-class))
+ (leaf-class-p (symbol)) (mopu-eql-specializer-p (t))
+ (mopu-generic-function-methods (t)) (mopu-generic-function-name (t))
+ (mopu-method-qualifiers (t)) (mopu-method-specializers (t))
+ (mopu-specializer-direct-generic-functions (t)) (setf class) ...)
+? 
+
+(defgeneric direct-specializers-of (class &key writers? readers? other? short-form?)
+  (:method ((classname symbol) &key (short-form? t) (writers? t) (readers? t) 
+            (other? t))
+           ;;?? does this already have a name in the MOP
+           (let ((result nil))
+             (map-methods classname
+                          (lambda (gf m)
+                            (declare (ignore gf))
+                            (when (or (and (mopu-reader-method-p m)
+                                           readers?)
+                                      (and (mopu-writer-method-p m)
+                                           writers?)
+                                      (and (not (mopu-reader-method-p m))
+                                           (not (mopu-writer-method-p m))
+                                           other?))
+                              (push m result))))
+             (when short-form?
+               (setf result (delete-duplicates (mapcar #'mopu-method-name result))))
+             (nreverse result)))
+  (:method ((class standard-object) &rest args &key writers? readers? other? short-form?)
+           (declare (ignore writers? readers? other? short-form?))
+           (apply #'direct-specializers-of (class-name (class-of class)) args))
+  (:method ((class standard-class) &rest args &key writers? readers? other? short-form?)
+           (declare (ignore writers? readers? other? short-form?))
+           (apply #'direct-specializers-of (class-name class) args)))
+

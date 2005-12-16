@@ -1,414 +1,269 @@
 ;;;; -*- Mode: Common-Lisp; Package: METABANG.MOPTILITIES; Base: 10 -*-
-;;;; -**- $Source: /Users/eksl/repository/moptilities/dev/moptilities.lisp,v $ -**-
-;;;; -**- $Author: gwking $ -**-
-;;;; -**- $Date: 2005/09/13 21:03:49 $ -**-
-;;;; 
+;;;; some definitions are from the Art of the MOP
 
 (in-package cl-user)
 
 (defpackage "METABANG.MOPTILITIES"
-  (:use "COMMON-LISP"
-        #+ALLEGRO   "SYS"
-        #+ALLEGRO   "CLOS"
-        #+LISPWORKS "MP"
-        #+LISPWORKS "CLOS"
-        #+MCL       "CCL")
+  (:use "CLOSER-COMMON-LISP")
   (:nicknames "MOPU" "MOPTILITIES")
   (:export
    #:map-methods 
    #:remove-methods
    #:remove-methods-if
-   #:display-methods
    #:direct-specializers-of
-   #:all-specializers-of
-   #:generic-function-list
-   #:slot-names-of-class
+   #:specializers-of
+   
+   #:generic-functions
+   
    #:finalize-class-if-necessary
-          
-   #:mopu-find-method
-   #:mopu-generic-function-methods
-   #:mopu-specializer-direct-generic-functions
-   #:mopu-method-qualifiers
-   #:mopu-method-specializers
-   #:mopu-generic-function-name
-   #:mopu-reader-method-p 
-   #:mopu-writer-method-p
-   #:mopu-arglist
-   #:mopu-method-name
-   #:mopu-eql-specializer-p 
-   #:mopu-find-slot-definition
+   
+   #:reader-method-p 
+   #:writer-method-p
+   #:method-name
+   #:get-slot-definition
 
-   #:mopu-slot-definition-initform
-   #:mopu-class-slot-names
-   #:mopu-direct-slot-names
-   #:mopu-class-slot-information
-   
-   #:mopu-class-direct-superclasses
-   #:mopu-class-direct-subclasses
-   #:mopu-class-precedence-list
-   #:mopu-class-initargs
-   
-   #:subclassp
-   #:subclasses
-   #:subclasses*
+   #:slot-names
+   #:direct-slot-names
+   #:slot-properties
+      
    #:map-subclasses
-          
-   #:find-slot
+   #:superclasses
+   #:subclasses
+   #:direct-subclasses
+   #:direct-superclasses
+   #:subclassp
+       
    #:finalize-class-if-necessary
    #:leaf-class-p
    #:leaf-subclasses
-   #:mopu-class-direct-subclasses
+   
+   #+Ignore #:path-from-class-to-class
    
    #:class
-   #:class-name-of))
+   #:get-class
+   #:get-method
+   #:class-name-of
+   #:copy-template                      ; lousy name
+
+   #:eql-specializer-p 
+   
+   #:mopu-arglist
+   #:mopu-class-initargs)
+  
+  (:export 
+   #:generic-function-methods
+   #:method-specializers
+   ))
 
 (in-package "MOPTILITIES")
 
-#|
+;;; ---------------------------------------------------------------------------
 
-Surely not cross platform yet.
+(defgeneric get-class (thing)
+  (:documentation "Returns the class of thing or nil if the class cannot be found. Thing can be a class, an object representing a class or a symbol naming a class. Get-class is like find-class only not as particular.")
+  (:method ((thing symbol))
+           (find-class thing nil))
+  (:method ((thing standard-object)) 
+           (class-of thing))
+  (:method ((thing class))
+           thing))
 
-However, there are three MOPs that matter:
-
-  * MCL's ANSI+almost nothing 
-  * Allegro's mostly AMOP
-  * LispWork's mostly AMOP
-
-to a (much) lesser extent there is 
-
-  * PCL's mostly AMOP
-
-For the moment I am going to just hack things.  There must be a better portability
-model, though. (Like what exactly? GWK)
-
-
-XXXX At the moment, Lispworks and Allegro are still not completely supported (i.e., 
-XXXX there is code here that doesn't really do much useful on those platforms. Sigh.
-
-   ---Louis
-
-|#
+;;; ---------------------------------------------------------------------------
 
 (defmethod subclassp (child parent)
   "Returns t if child is a subclass of the parent."
-  #+MCL
-  (progn
-    (not (null (find (find-class parent) (mopu-class-precedence-list child)))))
-  #+(or Allegro LispWorks4)
-  (progn
-    (finalize-class-if-necessary child)
-    (not (null (find (find-class parent) (mopu-class-precedence-list child)))))
-  #-(or MCL ALLEGRO LISPWORKS4)
-  (error "don't know how to subclassp"))
+  (finalize-class-if-necessary child)
+  (not (null (find (get-class parent) (superclasses child)))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-class-direct-superclasses (class)
-  (:method ((class standard-class))
-           (or #+MCL 
-               (ccl:class-direct-superclasses class)
-               #+ALLEGRO
-               (clos:class-direct-superclasses class)
-               #+LispWorks4
-               (hcl:class-direct-superclasses class)
-               (error "don't know how to mopu-class-direct-superclasses")))
-  (:method ((class symbol))
-           (mopu-class-direct-superclasses (find-class class)))
-  (:method ((class standard-object))
-           (mopu-class-direct-superclasses (class-of class))))
+(defun finalize-class-if-necessary (thing)
+  "Finalizes thing if necessary. Thing can be a class, object or symbol naming a class. Returns the class of thing."
+  (let ((class (get-class thing)))
+    (unless (class-finalized-p thing)
+      (finalize-inheritance thing))
+    (values thing)))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-class-direct-subclasses (class)
-  (:method ((class standard-class))
-           (mopu-class-direct-subclasses-internal class))
-  (:method ((class built-in-class))
-           (mopu-class-direct-subclasses-internal class))
-  (:method ((class symbol))
-           (mopu-class-direct-subclasses (find-class class)))
-  (:method ((class standard-object))
-           (mopu-class-direct-subclasses (class-of class))))
+(defun superclasses (thing)
+  "Returns a list of superclasses of thing. Thing can be a class, object or symbol naming a class."
+  (finalize-class-if-necessary thing) 
+  (class-precedence-list (get-class thing)))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun mopu-class-direct-subclasses-internal (class)
-  (or #+MCL 
-      (ccl:class-direct-subclasses class)
-      #+ALLEGRO
-      (clos:class-direct-subclasses class)
-      #+LispWorks4
-      (hcl::class-direct-subclasses class)
-      #-(or MCL ALLEGRO LISPWORKS4)
-      (error "don't know how to mopu-class-direct-superclasses")))
+(defun direct-superclasses (thing)
+  "Returns the immediate superclasses of thing. Thing can be a class, object or symbol naming a class."
+  (class-direct-superclasses (get-class thing)))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun finalize-class-if-necessary (class)
-  "Finalizes the class \"class\" if necessary. Returns t."
-  class                                 ; prevent warning
-  #+(or Allegro LispWorks4)
-  (unless (class-finalized-p class)
-    (finalize-inheritance class))
-  (values t))
+(defun direct-subclasses (thing)
+  "Returns the immediate subclasses of thing. Thing can be a class, object or symbol naming a class."
+  (class-direct-subclasses (get-class thing)))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-class-precedence-list (class) 
-  (:method ((class standard-class))
-           #+MCL
-           (ccl:class-precedence-list class)
-           #+(or ALLEGRO LispWorks4)
-           (progn
-             (finalize-class-if-necessary class)
-             (class-precedence-list class))
-           #-(or MCL ALLEGRO LISPWORKS4)
-           (error "don't know how to mopu-class-precedence-list"))
-  (:method ((class symbol))
-           (mopu-class-precedence-list (find-class class)))
-  (:method ((class standard-object))
-           (mopu-class-precedence-list (class-of class))))
-
-;;; ---------------------------------------------------------------------------
-
-(defgeneric mopu-method-name (method)
+(defgeneric method-name (method)
   (:method ((method standard-method))
-           (mopu-generic-function-name (method-generic-function method))))
+           (generic-function-name (method-generic-function method))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defmethod mopu-method-specializers (m)
-  #+MCL
-  (ccl:method-specializers m)
-  #+(OR ALLEGRO LISPWORKS4)
-  (clos:method-specializers m))
+(defgeneric get-method (function qualifiers &rest specializers)
+  (:documentation "")
+  (:method ((function symbol) qualifiers &rest specializers)
+           (declare (dynamic-extent specializers))
+           (if (fboundp function)
+             (apply #'get-method
+                    (fboundp function)
+                    qualifiers specializers)
+             nil))
+  (:method ((function standard-generic-function) qualifiers &rest specializers)
+           (declare (dynamic-extent specializers))
+           (find-method function qualifiers
+               (mapcar #'get-class specializers) nil)))
 
 ;;; ---------------------------------------------------------------------------
 
-(defmethod mopu-method-qualifiers (m)
-  #+MCL
-  (ccl::method-qualifiers m)
-  #+(OR ALLEGRO LISPWORKS4)
-  (clos:method-qualifiers m))
-
-;;; ---------------------------------------------------------------------------
-
-(defmethod mopu-generic-function-methods (gf)
-  #+MCL
-  (ccl:generic-function-methods gf)
-  #+(or ALLEGRO LispWorks4)
-  (clos:generic-function-methods gf))
-
-;;; ---------------------------------------------------------------------------
-
-(defmethod mopu-specializer-direct-generic-functions (class)
-  #+MCL
-  (ccl:specializer-direct-generic-functions class)
-  #+ALLEGRO
-  (clos:specializer-direct-generic-functions class)
-  #+LispWorks4
-  (clos::class-direct-generic-functions class))
-
-;;; ---------------------------------------------------------------------------
-
-(defmethod mopu-generic-function-name (gf)
-  #+MCL
-  (ccl:function-name gf)
-  #+ALLEGRO
-  (mop::generic-function-name gf)
-  #+LISPWORKS
-  (hcl::generic-function-name gf)
-  #-(or MCL ALLEGRO LISPWORKS)
-  (error "Need implementation of mopu-generic-function-name"))
-
-;;; ---------------------------------------------------------------------------
-
-(defun mopu-find-method (gf-name qualifiers &rest specializers)
-  #+MCL
-  (and (fboundp gf-name)
-       (let ((def (fdefinition gf-name)))
-         (and def
-              (find-method def qualifiers
-                           (mapcar #'find-class specializers) nil)))))
-
-;;; ---------------------------------------------------------------------------
-
-(defgeneric mopu-class-slot-names (class)
+(defgeneric slot-names (class)
   (:documentation "Returns a list of the names of the slots of a class (including
 both direct and inherited slots). It's like class-slot-names but on the
 class, not an instance of the class.")
-  (:method ((class standard-class))
-           #+(and DIGITOOL (not MCL-COMMON-MOP-SUBSET))
-           (mapcar #'ccl:slot-definition-name (ccl:class-instance-slots class))
-           #+(OR ALLEGRO LISPWORKS4)
-           (progn
-             (finalize-class-if-necessary class)
-             (mapcar #'clos:slot-definition-name (clos:class-slots class)))
-           #+MCL-COMMON-MOP-SUBSET
-           (mapcar #'ccl:slot-definition-name (class-slots class))
-           #-(OR ALLEGRO DIGITOOL LISPWORKS4 OPENMCL)
-           (class-slot-names (allocate-instance class)))
+  (:method ((class class))
+           (finalize-class-if-necessary class)
+           (mapcar #'slot-definition-name (class-slots class)))
   (:method ((class symbol))
-           (cond ((find-structure class nil)
+           (cond ((get-structure class nil)
                   #+MCL
-                  (mapcar #'first (rest (aref (find-structure class nil) 1)))
+                  (mapcar #'first (rest (aref (get-structure class nil) 1)))
                   #-(or MCL)
                   (nyi class))
                  ((find-class class nil)
-                  (mopu-class-slot-names (find-class class)))
+                  (slot-names (find-class class)))
                  (t
                   (error "Cannot find class or structure ~A" class))))
   (:method ((class standard-object))
-           (mopu-class-slot-names (class-of class)))
+           (slot-names (class-of class)))
   (:method ((class structure-object))
-           (mopu-class-slot-names (type-of class))))
+           (slot-names (type-of class))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-class-slot-information (class slot-name)
-  (:documentation "Returns a property list descring the slot.")
+(defgeneric slot-properties (class slot-name)
+  (:documentation "Returns a property list descring the slot named slot-name in class.")
   (:method ((class symbol) slot-name)
-           (mopu-class-slot-information (find-class class) slot-name))
+           (slot-properties (find-class class) slot-name))
   (:method ((object standard-object) slot-name)
-           (mopu-class-slot-information (class-of object) slot-name))
-  (:method ((class standard-class) slot-name)
+           (slot-properties (class-of object) slot-name))
+  (:method ((class class) slot-name)
            (declare (ignorable slot-name))
-           (or #+MCL-COMMON-MOP-SUBSET
-               (multiple-value-bind (slot-info indirect-slot?)
-                                    (mopu-find-slot-definition class slot-name)
-                 (values `(:name ,(ccl:slot-definition-name slot-info)
-                                 ,@(when (eq (ccl:slot-definition-allocation slot-info) :class)
-                                     `(:allocation ,(ccl:slot-definition-allocation slot-info)))
-                                 :initargs ,(ccl:slot-definition-initargs slot-info)
-                                 :initform ,(ccl:slot-definition-initform slot-info)
-                                 ,@(when (and (not (eq (ccl:slot-definition-type slot-info) t))
-                                              (not (eq (ccl:slot-definition-type slot-info) nil)))
-                                     `(:type ,(ccl:slot-definition-type slot-info)))
-                                 ,@(unless indirect-slot?
-                                     `(:readers ,(ccl:slot-definition-readers slot-info)
-                                                :writers ,(ccl:slot-definition-writers slot-info))))
-                         t))
-               #-MCL-COMMON-MOP-SUBSET
-               (values nil nil))))
+           (multiple-value-bind (slot-info indirect-slot?)
+                                (get-slot-definition class slot-name)
+             `(:name ,(slot-definition-name slot-info)
+                     ,@(when (eq (slot-definition-allocation slot-info) :class)
+                         `(:allocation ,(slot-definition-allocation slot-info)))
+                     :initargs ,(slot-definition-initargs slot-info)
+                     :initform ,(slot-definition-initform slot-info)
+                     ,@(when (and (not (eq (slot-definition-type slot-info) t))
+                                  (not (eq (slot-definition-type slot-info) nil)))
+                         `(:type ,(slot-definition-type slot-info)))
+                     ,@(unless indirect-slot?
+                         `(:readers ,(slot-definition-readers slot-info)
+                                    :writers ,(slot-definition-writers slot-info)))))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-find-slot-definition (class slot-name)
+(defgeneric get-slot-definition (class slot-name)
   (:method ((class symbol) slot-name)
-           (mopu-find-slot-definition (find-class class) slot-name))
+           (get-slot-definition (find-class class) slot-name))
   (:method ((object standard-object) slot-name)
-           (mopu-find-slot-definition (class-of object) slot-name))
-  (:method ((class standard-class) slot-name)
+           (get-slot-definition (class-of object) slot-name))
+  (:method ((class class) slot-name)
            (let* ((indirect-slot? nil)
                   (slot-info 
                    (or (find slot-name (class-direct-slots class)
-                             :key #'mopu-slot-definition-name)
+                             :key #'slot-definition-name)
                        (and (setf indirect-slot? t)
                             (find slot-name (class-slots class)
-                                  :key #'mopu-slot-definition-name)))))
+                                  :key #'slot-definition-name)))))
              (values slot-info indirect-slot?))))
-
-;;; ---------------------------------------------------------------------------
-
-(defgeneric mopu-slot-definition-name (slot-def)
-  (:method (slot-def)
-           #+MCL
-           (ccl:slot-definition-name slot-def)
-           #+SBCL
-           (sb-mop:slot-definition-name slot-def)
-           ))
   
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-direct-slot-names (class)
+(defgeneric direct-slot-names (class)
   (:documentation "")
   (:method ((class symbol))
-           (mopu-direct-slot-names (find-class class)))
+           (direct-slot-names (find-class class)))
   (:method ((class standard-object))
-           (mopu-direct-slot-names (class-of class)))
-  (:method ((class standard-class))
-           #+(and DIGITOOL (not MCL-COMMON-MOP-SUBSET))
-           (mapcar #'ccl:slot-definition-name (ccl:class-direct-instance-slots class))
-           #+OPENMCL
-           (mapcar #'ccl:slot-definition-name (ccl:class-direct-slots class))
-           #-(or OPENMCL DIGITOOL)
-           (error "Don't know how to mopu-direct-slot-names")))
+           (direct-slot-names (class-of class)))
+  (:method ((class class))
+           (mapcar #'slot-definition-name (class-direct-slots class))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-reader-method-p (method)
-  (:documentation "")
-  (:method ((m #+Allegro   mop::standard-reader-method
-               #+MCL       ccl:standard-reader-method
-               #+Lispworks hcl::standard-reader-method
-               #+SBCL      sb-pcl::standard-reader-method))
+(defgeneric reader-method-p (thing)
+  (:documentation "Returns true if thing is a reader method (i.e., a subclass of standard-reader-method).")
+  (:method ((m standard-reader-method))
            (values t))
   (:method ((m t))
            (values nil)))
 
 ;;; ---------------------------------------------------------------------------
  
-(defgeneric mopu-writer-method-p (method)
-  (:documentation "")
-  (:method ((m #+Allegro   mop::standard-writer-method
-               #+MCL       ccl:standard-writer-method
-               #+Lispworks hcl::standard-writer-method
-               #+SBCL      sb-pcl::standard-writer-method))
+(defgeneric writer-method-p (thing)
+  (:documentation "Returns true if thing is a writer method (i.e., a subclass of standard-writer-method).")
+  (:method ((m standard-writer-method))
            (values t))
   (:method ((m t))
            (values nil)))
 
 
 ;;; ---------------------------------------------------------------------------
-;;; l1-methods
-;;; ---------------------------------------------------------------------------
 
-(defun map-methods (classname fn)
-  "Applys fn to all of the methods of the class named classname. The function ~
-should take two arguments: a generic function and a method."
-  (let ((class (find-class classname nil)))
+(defun map-methods (thing fn)
+  "Applys fn to all of the methods of thing (which can be a class, object or symbol naming a class). The function should take two arguments: a generic function and a method."
+  (let ((class (get-class thing)))
     (when class
-      (loop for gf in (mopu-specializer-direct-generic-functions class) do
-            (loop for m in (mopu-generic-function-methods gf) do
-                  (when (member class (mopu-method-specializers m))
+      (loop for gf in (specializer-direct-generic-functions class) do
+            (loop for m in (generic-function-methods gf) do
+                  (when (member class (method-specializers m))
                     (funcall fn gf m)))))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods (classname &key (verbose? t))
-  (let ((class (find-class classname nil)))
-    (if class
-      (map-methods classname 
-                   (lambda (gf m) 
-                     (when verbose?
-                       (format t "~&~A" m))
-                     (remove-method gf m)))
-      (when verbose?
-        (warn "Class '~A' not found." classname)))))
+(defun remove-methods (thing &key (verbose? t))
+  "Removes all methods associated with thing. Thing can be a class, object representing a class or symbol naming a class."
+  (remove-methods-if thing (constantly t) :verbose? verbose?))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods-if (classname predicate &key (verbose? t))
-  (let ((class (find-class classname nil)))
+(defun remove-methods-if (thing predicate &key (verbose? t))
+  "Removes all methods associated with thing that pass a predicate. Thing can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method."
+  (let ((class (get-class thing)))
     (if class
-      (map-methods classname 
+      (map-methods thing 
                    (lambda (gf m) 
                      (when (funcall predicate gf m)
                        (when verbose?
                          (format t "~&~A" m))
                        (remove-method gf m))))
       (when verbose?
-        (warn "Class '~A' not found." classname)))))
+        (warn "Class '~A' not found." thing)))))
 
 ;;; ---------------------------------------------------------------------------
 
+#+Ignore
 (defun display-methods (classname)
   (map-methods classname (lambda (gf m) (format t "~&~A~%  ~A" gf m))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun generic-function-list (classname)
+(defun generic-functions (thing)
+  "Returns a list of all of the methods associated with thing. Thing can be a class, object, or symbol naming a class."
   (let ((result nil))
-    (map-methods classname
+    (map-methods thing
                  (lambda (gf m) 
                    (declare (ignore m))
                    (pushnew gf result)))
@@ -416,122 +271,85 @@ should take two arguments: a generic function and a method."
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric direct-specializers-of (class &key writers? readers? other? short-form?)
-  (:method ((classname symbol) &key (short-form? t) (writers? t) (readers? t) 
-            (other? t))
-           ;;?? does this already have a name in the MOP
-           (let ((result nil))
-             (map-methods classname
-                          (lambda (gf m)
-                            (declare (ignore gf))
-                            (when (or (and (mopu-reader-method-p m)
-                                           readers?)
-                                      (and (mopu-writer-method-p m)
-                                           writers?)
-                                      (and (not (mopu-reader-method-p m))
-                                           (not (mopu-writer-method-p m))
-                                           other?))
-                              (push m result))))
-             (when short-form?
-               (setf result (delete-duplicates (mapcar #'mopu-method-name result))))
-             (nreverse result)))
-  (:method ((class standard-object) &rest args &key writers? readers? other? short-form?)
-           (declare (ignore writers? readers? other? short-form?))
-           (apply #'direct-specializers-of (class-name (class-of class)) args))
-  (:method ((class standard-class) &rest args &key writers? readers? other? short-form?)
-           (declare (ignore writers? readers? other? short-form?))
-           (apply #'direct-specializers-of (class-name class) args)))
+(defun direct-specializers-of (thing &key (writers? t) (readers? t)
+                                     (other? t) (short-form? t))
+  "Returns a list of the direct specializers of thing. Thing can a class, object representing a class or symbol naming a class. The keyword arguments :readers?, :writers?, and :other? control which specializers are returned \(reader methods, writer methods and other methods respectively\). The keyword argument :short-form? controls whether a list of methods is returned or just a list of names."
+  (let ((result nil)
+        (transform (if short-form? #'method-name #'identity)))
+    (map-methods thing
+                 (lambda (gf m)
+                   (declare (ignore gf))
+                   (when (or (and (reader-method-p m)
+                                  readers?)
+                             (and (writer-method-p m)
+                                  writers?)
+                             (and (not (reader-method-p m))
+                                  (not (writer-method-p m))
+                                  other?))
+                     (push (funcall transform m) result))))
+    (nreverse result)))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun all-specializers-of (class &rest args &key short-form? writers? readers? other?
-                                  (ignore-classes '(t standard-object)))
+(defun specializers-of (class &rest args &key short-form? writers? readers? other?
+                              (ignore-classes '(t standard-object)))
   (declare (ignore writers? readers? other? short-form?))
+  "Like direct-specializers-of but returns all the specializers, not just the direct ones."
   (remf args :ignore-classes)
   (setf ignore-classes (mapcar #'find-class (if (consp ignore-classes)
                                               ignore-classes
                                               (list ignore-classes))))
   (delete-duplicates
-   (apply #'append
+   (apply #'nconc
           (mapcar (lambda (super-class)
                     (unless  (member super-class ignore-classes)
                       (apply #'direct-specializers-of super-class args)))
-                  (mopu-class-precedence-list class)))))
-
-
-(defgeneric subclasses* (class)
-  (:documentation "Returns all of the subclasses of the class including the class itself.")
-  (:method ((class t))
-           (let ((result nil))
-             (map-subclasses class (lambda (class)
-                                     (push class result)))
-             (nreverse result))))
+                  (superclasses class)))))
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric map-subclasses (class fn &key proper)
-  (:documentation "Applies fn to each subclass of class. If proper is true, then
-the class itself is not included in the mapping. Proper defaults to nil.")
-  (:method ((class symbol) fn &key proper)
-           (map-subclasses (find-class class) fn :proper proper))
-  (:method ((class t) fn &key proper)
-           (let ((mapped (make-hash-table :test #'eq)))
-             (labels ((mapped-p (class)
-                      (gethash class mapped))
-                      (do-it (class root)
-                        (unless (mapped-p class)
-                          (setf (gethash class mapped) t)
-                          (unless (and proper root)
-                            (funcall fn class))
-                          (mapc (lambda (class)
-                                  (do-it class nil))
-                                (mopu-class-direct-subclasses class)))))
-               (do-it class t)))))
-
-
-;;; ---------------------------------------------------------------------------
-;;; from The Art of the MOP
-;;; ---------------------------------------------------------------------------
-
-;; 52
-#+Old
-(defgeneric subclasses* (class)
-  (:documentation "Returns all of the subclasses of the class including the class itself.")
-  (:method ((class symbol))
-           (subclasses* (find-class class)))
-  (:method ((class t))
-           (remove-duplicates
-            (cons class
-                  (reduce #'append 
-                          (mapcar #'subclasses*
-                                  (ccl:class-direct-subclasses class)))))))
+(defun map-subclasses (class fn &key proper?)
+  "Applies fn to each subclass of class. If proper? is true, then
+the class itself is not included in the mapping. Proper? defaults to nil."
+  (let ((mapped (make-hash-table :test #'eq)))
+    (labels ((mapped-p (class)
+               (gethash class mapped))
+             (do-it (class root)
+               (unless (mapped-p class)
+                 (setf (gethash class mapped) t)
+                 (unless (and proper? root)
+                   (funcall fn class))
+                 (mapc (lambda (class)
+                         (do-it class nil))
+                       (class-direct-subclasses class)))))
+      (do-it (get-class class) t))))
 
 ;;; ---------------------------------------------------------------------------
 
-;; 52
-(defun subclasses (class)
-  "Returns all of the subclasses of a class."
-  (typecase class
-    (symbol (remove (find-class class) (subclasses* class)))
-    (standard-class (remove class (subclasses* class)))))
+(defun subclasses (class &key (proper? t))
+  "Returns all of the subclasses of the class including the class itself."
+  (let ((result nil))
+    (map-subclasses class (lambda (class)
+                            (push class result))
+                    :proper? proper?)
+    (nreverse result)))
 
 ;;; ---------------------------------------------------------------------------
 
-;; 57
 (defun in-order-p (c1 c2)
   (flet ((in-order-at-subclass-p (sub)
-           (let ((cpl (mopu-class-precedence-list sub)))
+           (let ((cpl (superclasses sub)))
              (not (null (member c2 (cdr (member c1 cpl))))))))
     (or (eq c1 c2)
         (every #'in-order-at-subclass-p 
-               (intersection (subclasses* c1)
-                             (subclasses* c2))))))
+               (intersection (subclasses c1 :proper? nil)
+                             (subclasses c2 :proper? nil))))))
 
 ;;; ---------------------------------------------------------------------------
 ;;; structures
 ;;; ---------------------------------------------------------------------------
 
-(defun find-structure (name &optional (errorp t))
+(defun get-structure (name &optional (errorp t))
   "get-desfstruct-description name
 
 If `name' has been defined as a structure then return its
@@ -548,33 +366,22 @@ description.  Otherwise signal an error if errorp is t."
                 
 
 ;;; ---------------------------------------------------------------------------
-;;; From Charles
+
+#+Ignore
+(defun path-from-class-to-class (sub super)
+  "Returns a list representing a path of classes that runs from sub to super" 
+  (let ((super-class (get-class super)))
+    (let ((candidates (direct-superclasses sub)))
+      (cond ((null candidates) nil) 
+            ((find super-class candidates)
+             (values super-class))
+            (t (dolist (c candidates)
+                 (let ((it (path-from-class-to-class c super-class))) 
+                   (when it 
+                     (print it)  
+                     (return c)))))))))
+
 ;;; ---------------------------------------------------------------------------
-
-(defun find-slot (class slot-name)
-  (find slot-name (mopu-class-slot-names class)))
-
-;;; ---------------------------------------------------------------------------
-
-(defun mopu-slot-definition-initform (slotdef)
-  #+(or Lucid Lispworks Allegro)
-  (clos:slot-definition-initform slotdef)
-  #+MCL
-  (ccl:slot-definition-initform slotdef)
-  #-(or MCL Lucid Lispworks Allegro)
-  (slot-definition-initform slotdef))
-
-#+MCL
-(defun show-class-path (sub super)
-  (let ((candidates (ccl::class-direct-superclasses sub)))
-       (cond ((null candidates) nil) 
-             ((find super candidates)
-              (values super))
-             (t (dolist (c candidates)
-                  (let ((it (show-class-path c super))) 
-                    (when it 
-                      (print it)  
-                      (return c))))))))
 
 (defun mopu-arglist (symbol)
   "Returns two values, the arglist of symbol"
@@ -585,57 +392,46 @@ description.  Otherwise signal an error if errorp is t."
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric mopu-class-initargs (class) 
-  (:method ((class standard-class))
-           #+MCL
-           (ccl::class-slot-initargs class)
-           #+lispworks
-           (lw-tools::class-initargs class)
-           #-(or MCL LISPWORKS4)
-           (error "don't know how to mopu-class-initargs"))
-  (:method ((class symbol))
-           (mopu-class-initargs (find-class class)))
-  (:method ((class standard-object))
-           (mopu-class-initargs (class-of class))))
+(defun mopu-class-initargs (thing) 
+  (let ((class (get-class thing)))
+    #+MCL
+    (ccl::class-slot-initargs class)
+    #+lispworks
+    (lw-tools::class-initargs class)
+    #-(or MCL LISPWORKS4)
+    (error "don't know how to mopu-class-initargs")))
 
 ;;; ---------------------------------------------------------------------------
 
-(defmethod mopu-eql-specializer-p (s)
-  (or
-   #+MCL-COMMON-MOP-SUBSET
-   (when (ccl::eql-specializer-p s) 
-     (list 'eql (ccl:eql-specializer-object s)))
-   #+MCL
-   (when (consp s)
-     s)))
+(defgeneric eql-specializer-p (thing)
+  (:documentation "If thing is an eql-specializer, returns a representation of thing as \(eql <object>\).")
+  (:method ((thing eql-specializer))
+           (list 'eql (eql-specializer-object thing)))
+  (:method ((thing t))
+    (values nil))
+  #+DIGITOOL
+  (:method ((thing cons))
+           thing))
 
 ;;; ---------------------------------------------------------------------------
 ;;; leaf classes
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric leaf-class-p (class)
-  (:documentation "Returns true if the class has no subclasses."))
-
-;;; ---------------------------------------------------------------------------
-
-(defmethod leaf-class-p ((class standard-class))
-  (map-subclasses class
+(defun leaf-class-p (thing)
+  "Returns true if the class has no subclasses."
+  (map-subclasses thing
                   (lambda (subclass)
                     (declare (ignore subclass))
                     (return-from leaf-class-p nil))
-                  :proper t)
+                  :proper? t)
   (values t))
 
 ;;; ---------------------------------------------------------------------------
 
-(defmethod leaf-class-p ((class-name symbol))
-  (leaf-class-p (find-class class-name)))
-
-;;; ---------------------------------------------------------------------------
-
-(defun leaf-subclasses (class)
+(defun leaf-subclasses (thing)
+  "Returns a list of subclasses of thing that have no subclasses of their own; i.e., the leaves of the class tree rooted at thing. Thing can be a class, object or symbol naming a class." 
   (let ((result nil))
-    (map-subclasses class 
+    (map-subclasses thing 
                     (lambda (class)
                       (when (leaf-class-p class)
                         (push class result))))
@@ -651,21 +447,55 @@ description.  Otherwise signal an error if errorp is t."
            (change-class object (find-class class)))
   (:method ((class standard-object) (object standard-object))
            (setf (class object) (class-of class)))
-  (:method ((class standard-class) (object standard-object))
+  (:method ((class class) (object standard-object))
            (change-class object class)))
 
-#|
+#| a macro to handle this would be good but we don't have much machinery 
+   around to help since moptilities is supposed to down in the foundations.
+
+
+;;?? grrr, what is minimal! What is the root!!
+(defmacro with-unique-names ((&rest vars) &body body)
+  "Binds the symbols in VARS to gensyms.  cf with-gensyms."
+  (assert (every #'symbolp vars) () "Can't rebind an expression.")
+  `(let ,(mapcar #'(lambda (x) `(,x (gensym))) vars)
+     ,@body))
 
 ;;?? how to munge lambda-list properly...
 
 (defmacro build-generalized-mopu-method (name lambda-list &body body)
-  `(defgeneric ,name ,lambda-list 
-    (:method ((class standard-class))
-             ,@body)
-    (:method ((class symbol))
-             (,name (find-class class)))
-    (:method ((class standard-object))
-             (,name (class-of class)))))
+  (with-unique-names (args)
+    (let ((arglist (rest lambda-list)))
+      `(defgeneric ,name ,lambda-list
+         ; (:documentation ,documentation)
+         (:method ((classname symbol) ,@arglist)
+                  ,@body)
+         (:method ((object standard-object) &rest ,args ,@arglist)
+                  (declare (dynamic-extent ,args))
+                  (apply #',name (class-name-of object) ,args))
+         (:method ((class class) &rest ,args ,@arglist)
+                  (declare (dynamic-extent ,args))
+                  (apply #',name (class-name class) ,args))))))
+              
+;;; ---------------------------------------------------------------------------
+
+(build-generalized-mopu-method direct-specializers-of (class &key writers? readers? other? short-form?)
+  ;;?? does this already have a name in the MOP
+  (let ((result nil))
+    (map-methods classname
+                 (lambda (gf m)
+                   (declare (ignore gf))
+                   (when (or (and (reader-method-p m)
+                                  readers?)
+                             (and (writer-method-p m)
+                                  writers?)
+                             (and (not (reader-method-p m))
+                                  (not (writer-method-p m))
+                                  other?))
+                     (push m result))))
+    (when short-form?
+      (setf result (delete-duplicates (mapcar #'method-name result))))
+    (nreverse result)))
 
 (build-generalized-mopu-method mopu-class-initargs (class)
   #+MCL
@@ -687,11 +517,62 @@ description.  Otherwise signal an error if errorp is t."
 
 ;;; ---------------------------------------------------------------------------
 
-(defun class-name-of (object)
-  "Returns the name of OBJECT's class."
-  (class-name (class-of object)))
-                               
+(defgeneric class-name-of (thing)
+  (:documentation "Returns the name of thing's class.")
+  (:method ((thing standard-object)) 
+           (class-name (class-of thing)))
+  (:method ((thing class))
+           (class-name thing)))
 
+
+;;; ---------------------------------------------------------------------------
+;;; copy-template
+;;; suppose you have an object
+;;; ? (defclass foo ()
+;;;     ((test :accessor test :initform #'equal :initarg :test))) =>
+;;; #<STANDARD-CLASS FOO>
+;;; 
+;;; ? (setf *foo* (make-instance 'foo :test #'eql))
+;;;
+;;; ? (test *foo*) => #'eql 
+;;; 
+;;; Now you want to make another instance of foo that has the test as foo.
+;;; 
+;;; ? (setf *new-foo* (make-instance (type-of foo)))
+;;;
+;;; ? (test *new-foo*) => #'equal
+;;;
+;;; Wait, we wanted *new-foo* to have slot test to be #'eql.  This seems trival
+;;; for simple objects, but consider this from make-filtered-graph
+;;;
+;;; (make-graph (type-of old-graph)
+;;;              :vertex-test (vertex-test old-graph) 
+;;;              :vertex-key (vertex-key old-graph)
+;;;              :edge-test (edge-test old-graph)
+;;;              :edge-key (edge-key old-graph)
+;;;              :default-edge-type (default-edge-type old-graph)
+;;;              :default-edge-class (default-edge-class old-graph)
+;;;              :directed-edge-class (directed-edge-class old-graph)
+;;;              :undirected-edge-class (undirected-edge-class old-graph))))
+;;; Yuck!
+;;; 
+;;; So we offer copy-template as a reasonable, though not perfect, solution
+;;; ---------------------------------------------------------------------------
+
+(defmethod copy-template ((object standard-object))
+  (apply 
+   #'make-instance 
+   (type-of object) 
+   (loop 
+     for (nil name nil initargs) in (mapcar (lambda (slot-value)
+                                              (slot-properties 
+                                               object slot-value))
+                                            (slot-names object)) 
+     when (and initargs
+               (slot-boundp object name)) nconc
+     (list (if (listp initargs)
+             (first initargs)
+             initargs) (slot-value object name)))))
 
 ;;; ***************************************************************************
 ;;; *                              End of File                                *

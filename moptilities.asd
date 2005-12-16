@@ -18,4 +18,7 @@ See the file COPYING for details
   :long-description "MOP utilities is designed to provide a common interface between lisps and make the MOP easier to use."
 
   :components ((:module "dev"
-                        :components ((:file "moptilities")))))
+                        :components ((:file "moptilities")
+                                     
+                                     (:static-file "notes.text"))))
+  :depends-on (closer-mop))
