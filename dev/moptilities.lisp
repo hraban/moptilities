@@ -357,7 +357,7 @@ description.  Otherwise signal an error if errorp is t."
   (let ((found (or #+MCL (ccl::structure-class-p name)
                    #+Lispworks4 (structure:type-structure-predicate name))))
     (cond #+(not (or MCL Lispworks4)) 
-          (t (error "no implementation exists"))
+          (t (warn "no implementation for get-structure exists"))
           (found
            (values t))
           (t
@@ -388,7 +388,11 @@ description.  Otherwise signal an error if errorp is t."
   #+MCL
   (ccl:arglist symbol)
   #+lispworks
-  (lw:function-lambda-list symbol))
+  (lw:function-lambda-list symbol)
+  #-(or MCL LISPWORKS)
+  (progn
+    (warn "mopu-arglist not implemented")
+    nil)))
 
 ;;; ---------------------------------------------------------------------------
 
@@ -399,7 +403,9 @@ description.  Otherwise signal an error if errorp is t."
     #+lispworks
     (lw-tools::class-initargs class)
     #-(or MCL LISPWORKS4)
-    (error "don't know how to mopu-class-initargs")))
+    (progn
+      (warn "don't know how to mopu-class-initargs")
+      nil)))
 
 ;;; ---------------------------------------------------------------------------
 
