@@ -4,6 +4,7 @@
 (in-package cl-user)
 
 (defpackage "METABANG.MOPTILITIES"
+  (:documentation "Moptilities builds on the Lisp Meta-Object Protodol (MOP).")
   (:use "CLOSER-COMMON-LISP")
   (:nicknames "MOPU" "MOPTILITIES")
   (:export
@@ -389,10 +390,12 @@ description.  Otherwise signal an error if errorp is t."
   (ccl:arglist symbol)
   #+lispworks
   (lw:function-lambda-list symbol)
-  #-(or MCL LISPWORKS)
+  #+allegro
+  (common-lisp-user:arglist symbol)
+  #-(or MCL LISPWORKS ALLEGRO)
   (progn
     (warn "mopu-arglist not implemented")
-    nil)))
+    nil))
 
 ;;; ---------------------------------------------------------------------------
 
