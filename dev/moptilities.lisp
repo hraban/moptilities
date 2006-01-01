@@ -81,9 +81,9 @@
 (defun finalize-class-if-necessary (thing)
   "Finalizes thing if necessary. Thing can be a class, object or symbol naming a class. Returns the class of thing."
   (let ((class (get-class thing)))
-    (unless (class-finalized-p thing)
-      (finalize-inheritance thing))
-    (values thing)))
+    (unless (class-finalized-p class)
+      (finalize-inheritance class))
+    (values class)))
 
 ;;; ---------------------------------------------------------------------------
 
