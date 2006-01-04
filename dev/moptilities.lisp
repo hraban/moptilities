@@ -60,6 +60,19 @@
 
 ;;; ---------------------------------------------------------------------------
 
+(defmacro NYI (function-name &rest args)
+  "Signals an error saying that this function is not yet implemented.  The args
+are ignored, but by supplying args from the calling function, you can get them
+ignored by the compiler."
+  `(error "The function ~A is not yet implemented for ~A ~A on ~A."
+          ,function-name
+	  (lisp-implementation-type)
+	  (lisp-implementation-version)
+	  (machine-type)
+          . ,args))
+
+;;; ---------------------------------------------------------------------------
+
 (defgeneric get-class (thing)
   (:documentation "Returns the class of thing or nil if the class cannot be found. Thing can be a class, an object representing a class or a symbol naming a class. Get-class is like find-class only not as particular.")
   (:method ((thing symbol))
@@ -140,7 +153,7 @@ class, not an instance of the class.")
                   #+MCL
                   (mapcar #'first (rest (aref (get-structure class nil) 1)))
                   #-(or MCL)
-                  (nyi class))
+                  (nyi "slot-names for structures"))
                  ((find-class class nil)
                   (slot-names (find-class class)))
                  (t
@@ -355,16 +368,17 @@ the class itself is not included in the mapping. Proper? defaults to nil."
 
 If `name' has been defined as a structure then return its
 description.  Otherwise signal an error if errorp is t."
+  (declare (ignorable name errorp))
+  #+(or MCL LISPWORKS4)
   (let ((found (or #+MCL (ccl::structure-class-p name)
                    #+Lispworks4 (structure:type-structure-predicate name))))
-    (cond #+(not (or MCL Lispworks4)) 
-          (t (warn "no implementation for get-structure exists"))
-          (found
+    (cond (found
            (values t))
           (t
            (when errorp
-             (error "~s is not the name of a defstruct." name))))))
-                
+             (error "~s is not the name of a defstruct." name)))))
+  #-(or MCL LISPWORKS)
+  (nyi "get-structure")) 
 
 ;;; ---------------------------------------------------------------------------
 
@@ -391,24 +405,21 @@ description.  Otherwise signal an error if errorp is t."
   #+lispworks
   (lw:function-lambda-list symbol)
   #+allegro
-  (common-lisp-user:arglist symbol)
+  (common-lisp-user::arglist symbol)
   #-(or MCL LISPWORKS ALLEGRO)
-  (progn
-    (warn "mopu-arglist not implemented")
-    nil))
+  (nyi "mopu-arglist"))
 
 ;;; ---------------------------------------------------------------------------
 
 (defun mopu-class-initargs (thing) 
   (let ((class (get-class thing)))
+    (declare (ignorable class))
     #+MCL
     (ccl::class-slot-initargs class)
     #+lispworks
     (lw-tools::class-initargs class)
     #-(or MCL LISPWORKS4)
-    (progn
-      (warn "don't know how to mopu-class-initargs")
-      nil)))
+    (nyi "mopu-class-initargs")))
 
 ;;; ---------------------------------------------------------------------------
 
@@ -512,7 +523,7 @@ description.  Otherwise signal an error if errorp is t."
   #+lispworks
   (lw-tools::class-initargs class)
   #-(or MCL LISPWORKS4)
-  (error "don't know how to mopu-class-initargs"))
+  (nyi "mopu-class-initargs"))
 
 (build-generalized-mopu-method leaf-subclasses (class)
   (let ((result nil))
