@@ -20,5 +20,8 @@ See the file COPYING for details
   :components ((:module "dev"
                         :components ((:file "moptilities")
                                      
-                                     (:static-file "notes.text"))))
+                                     (:static-file "notes.text")))
+               (:module "website"
+                        :components ((:module "source"
+                                              :components ((:static-file "index.lml"))))))
   :depends-on (closer-mop))
