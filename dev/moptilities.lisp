@@ -53,7 +53,12 @@
   
   (:export 
    #:generic-function-methods
-   #:method-specializers
+   #:method-specializers)
+  
+  ;; should just re-export the whole mop
+  (:export
+   #:method-generic-function
+   #:generic-function-name
    ))
 
 (in-package "MOPTILITIES")
@@ -100,10 +105,11 @@ ignored by the compiler."
 
 ;;; ---------------------------------------------------------------------------
 
-(defun superclasses (thing)
-  "Returns a list of superclasses of thing. Thing can be a class, object or symbol naming a class."
+(defun superclasses (thing &key (proper? t))
+  "Returns a list of superclasses of thing. Thing can be a class, object or symbol naming a class. The list of classes returned is 'proper'; it does not include the class itself."
   (finalize-class-if-necessary thing) 
-  (class-precedence-list (get-class thing)))
+  (let ((result (class-precedence-list (get-class thing))))
+    (if proper? (rest result) result)))
 
 ;;; ---------------------------------------------------------------------------
 
