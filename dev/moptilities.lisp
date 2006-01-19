@@ -253,14 +253,14 @@ class, not an instance of the class.")
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods (thing &key (verbose? t))
-  "Removes all methods associated with thing. Thing can be a class, object representing a class or symbol naming a class."
+(defun remove-methods (thing &key (dry-run? nil) (verbose? dry-run?))
+  "Removes all methods associated with thing. Thing can be a class, object representing a class or symbol naming a class. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed."
   (remove-methods-if thing (constantly t) :verbose? verbose?))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods-if (thing predicate &key (verbose? t))
-  "Removes all methods associated with thing that pass a predicate. Thing can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method."
+(defun remove-methods-if (thing predicate &key (dry-run? nil) (verbose? dry-run?))
+  "Removes all methods associated with thing that pass a predicate. Thing can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed."
   (let ((class (get-class thing)))
     (if class
       (map-methods thing 
@@ -268,7 +268,8 @@ class, not an instance of the class.")
                      (when (funcall predicate gf m)
                        (when verbose?
                          (format t "~&~A" m))
-                       (remove-method gf m))))
+                       (unless dry-run?
+                         (remove-method gf m)))))
       (when verbose?
         (warn "Class '~A' not found." thing)))))
 
