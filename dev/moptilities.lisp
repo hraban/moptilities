@@ -253,25 +253,33 @@ class, not an instance of the class.")
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods (thing &key (dry-run? nil) (verbose? dry-run?))
-  "Removes all methods associated with thing. Thing can be a class, object representing a class or symbol naming a class. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed."
-  (remove-methods-if thing (constantly t) :verbose? verbose?))
+(defun remove-methods (thing &rest args 
+                             &key (dry-run? nil) (verbose? dry-run?)
+                             (ignore-errors? nil))
+  "Removes all methods associated with thing. Thing can be a class, object representing a class or symbol naming a class. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed. Returns the number of methods that are removed \(or that would have been removed if dry-run? is true\)."
+  (declare (ignore verbose? ignore-errors?)
+           (dynamic-extent args))
+  (apply #'remove-methods-if thing (constantly t) args))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods-if (thing predicate &key (dry-run? nil) (verbose? dry-run?))
-  "Removes all methods associated with thing that pass a predicate. Thing can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed."
-  (let ((class (get-class thing)))
+(defun remove-methods-if (thing predicate &key (dry-run? nil) (verbose? dry-run?)
+                                (ignore-errors? nil))
+  "Removes all methods associated with thing that pass a predicate. Thing can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed. Returns the number of methods that are removed \(or that would have been removed if dry-run? is true\)."
+  (let ((class (get-class thing))
+        (count 0))
     (if class
       (map-methods thing 
                    (lambda (gf m) 
                      (when (funcall predicate gf m)
+                       (incf count)
                        (when verbose?
                          (format t "~&~A" m))
                        (unless dry-run?
                          (remove-method gf m)))))
-      (when verbose?
-        (warn "Class '~A' not found." thing)))))
+      (unless ignore-errors?
+        (error "Class '~A' not found." thing)))
+    (values count)))
 
 ;;; ---------------------------------------------------------------------------
 
