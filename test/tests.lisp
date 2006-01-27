@@ -225,3 +225,10 @@ copy-template
 
 |#
 
+
+(deftestsuite test-map-methods (test-moptilities) ())
+
+(addtest (test-map-methods) 
+  get-error-for-missing-class
+  (ensure-error (map-methods 'fffffff #'print))
+  (ensure-error (direct-specializers-of 'fffffff)))
