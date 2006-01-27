@@ -3,6 +3,11 @@
 
 (in-package cl-user)
 
+#+sbcl
+(eval-when (:compile-toplevel :load-toplevel)
+  (require 'sb-introspect)              ; for mopu-arglist
+)
+
 (defpackage "METABANG.MOPTILITIES"
   (:documentation "Moptilities builds on the Lisp Meta-Object Protodol (MOP).")
   (:use "CLOSER-COMMON-LISP")
@@ -49,7 +54,10 @@
    #:eql-specializer-p 
    
    #:mopu-arglist
-   #:mopu-class-initargs)
+   #:mopu-class-initargs
+   
+   #:on-becoming-garbage)
+  
   
   (:export 
    #:generic-function-methods
@@ -245,11 +253,12 @@ class, not an instance of the class.")
 (defun map-methods (thing fn)
   "Applys fn to all of the methods of thing (which can be a class, object or symbol naming a class). The function should take two arguments: a generic function and a method."
   (let ((class (get-class thing)))
-    (when class
+    (if class
       (loop for gf in (specializer-direct-generic-functions class) do
             (loop for m in (generic-function-methods gf) do
                   (when (member class (method-specializers m))
-                    (funcall fn gf m)))))))
+                    (funcall fn gf m))))
+      (error "Unable to get-class of ~A" thing))))
 
 ;;; ---------------------------------------------------------------------------
 
@@ -421,7 +430,9 @@ description.  Otherwise signal an error if errorp is t."
   (lw:function-lambda-list symbol)
   #+allegro
   (common-lisp-user::arglist symbol)
-  #-(or MCL LISPWORKS ALLEGRO)
+  #+sbcl
+  (sb-introspect:function-arglist symbol)
+  #-(or MCL LISPWORKS ALLEGRO SBCL)
   (nyi "mopu-arglist"))
 
 ;;; ---------------------------------------------------------------------------
@@ -608,6 +619,26 @@ description.  Otherwise signal an error if errorp is t."
      (list (if (listp initargs)
              (first initargs)
              initargs) (slot-value object name)))))
+
+;;; ---------------------------------------------------------------------------
+
+(defgeneric when-garbage-collected (thing)
+  (:documentation ""))
+
+;;; ---------------------------------------------------------------------------
+
+(defmethod when-garbage-collected ((object t))
+  nil)
+
+;;; ---------------------------------------------------------------------------
+
+(defun care-when-garbage-collected (object)
+  #+MCL
+  (ccl:terminate-when-unreachable object)
+  #+ALLEGRO
+  (schedule-finalization object 'when-garbage-collected)
+  #-(or MCL ALLEGRO)
+  (nyi 'care-when-garbage-collected))
 
 ;;; ***************************************************************************
 ;;; *                              End of File                                *
