@@ -11,46 +11,44 @@
      "Moptilities"
      "Zany and Zippy yet never Oozy")
     
-    ((:TABLE :CLASS "system-overview")
-     (:tr
-      (generate-system-sidebar)
-      
-      ((:TD :CLASS "system-description")
-       (:H3 "What it is")
-       (:P 
-        "Like several other projects on Common-Lisp.net, Moptilities provides a 
+    ((:DIV :CLASS "contents")
+     (generate-system-sidebar)
+     
+     ((:DIV :CLASS "system-description")
+      (:H3 "What it is")
+      (:P 
+       "Like several other projects on Common-Lisp.net, Moptilities provides a 
 compatibility layer for minor MOP implmentation differences. It also adds
 some handy reflection capabilities. " (rw:link :tinaa) " documentation is " 
-        (rw:link :moptilities-tinaa :title "available") ".")
-       
-       ((:A :NAME "mailing-lists"))
-       (:h3 "Mailing Lists")
-       (:P "Moptilities isn't a separate project at this point but if you have
+       (rw:link :moptilities-tinaa :title "available") ".")
+      
+      ((:A :NAME "mailing-lists"))
+      (:h3 "Mailing Lists")
+      (:P "Moptilities isn't a separate project at this point but if you have
 questions, comments or concerns, just drop " (rw:link :mail-gwking :title "Gary King")
-           " a line.")
+          " a line.")
+      
+      ((:A :NAME "downloads"))
+      (:H3 "Where is it")
+      (:P "A " (rw:link :darcs) " repository is available. The commands are listed below:")
+      (:PRE "darcs get http://common-lisp.net/project/cl-containers/moptilities/darcs/moptilities")
+      (:P "Moptilities is " (rw:link :asdf-install :title "ASDF installable") ". Its CLiki home is right " (rw:link :moptilities-cliki :title "where") " you'd expect.")
+      (:P "There's also a handy " (rw:link :moptilities-package :title "gzipped tar file") ".")    
+      
+      ((:A :NAME "news"))
+      (:H3 "What is happening")
+      ((:TABLE :CLASS "news-table") 
+       ((:TR :ALIGN "left" :VALIGN "top")
+        ((:TD) "17 Dec 2005")
+        (:TD "Rewrote moptilities on top of Closer to MOP; changed all the names to protect the innocent."))
        
-       ((:A :NAME "downloads"))
-       (:H3 "Where is it")
-       (:P "A " (rw:link :darcs) " repository is available. The commands are listed below:")
-       (:PRE "darcs get http://common-lisp.net/project/cl-containers/moptilities/darcs/moptilities")
-       (:P "Moptilities is " (rw:link :asdf-install :title "ASDF installable") ". Its CLiki home is right " (rw:link :moptilities-cliki :title "where") " you'd expect.")
-       (:P "There's also a handy " (rw:link :moptilities-package :title "gzipped tar file") ".")    
+       ((:TR :ALIGN "left" :VALIGN "top")
+        ((:TD) "14 Nov 2005")
+        (:TD "Added tarball, etc."))
        
-       ((:A :NAME "news"))
-       (:H3 "What is happening")
-       ((:TABLE :CLASS "news-table") 
-        ((:TR :ALIGN "left" :VALIGN "top")
-         ((:TD) "17 Dec 2005")
-         (:TD "Rewrote moptilities on top of Closer to MOP; changed all the names to protect the innocent."))
-        
-        ((:TR :ALIGN "left" :VALIGN "top")
-         ((:TD) "14 Nov 2005")
-         (:TD "Added tarball, etc."))
-        
-        ((:TR :ALIGN "left" :VALIGN "top")
-         ((:TD) "13 Nov 2005")
-         (:TD "Initial setup."))))))
-    
+       ((:TR :ALIGN "left" :VALIGN "top")
+        ((:TD) "13 Nov 2005")
+        (:TD "Initial setup.")))))
     
     
     ((:DIV :CLASS "footer")
