@@ -5,7 +5,7 @@
 
 #+sbcl
 (eval-when (:compile-toplevel :load-toplevel)
-  (require 'sb-introspect)              ; for mopu-arglist
+  (require 'sb-introspect)              ; for function-arglist
 )
 
 (defpackage "METABANG.MOPTILITIES"
@@ -53,7 +53,7 @@
 
    #:eql-specializer-p 
    
-   #:mopu-arglist
+   #:function-arglist
    #:mopu-class-initargs
    
    #:on-becoming-garbage)
@@ -91,6 +91,8 @@ ignored by the compiler."
   (:method ((thing symbol))
            (find-class thing nil))
   (:method ((thing standard-object)) 
+           (class-of thing))
+  (:method ((thing t)) 
            (class-of thing))
   (:method ((thing class))
            thing))
@@ -220,8 +222,8 @@ class, not an instance of the class.")
   
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric direct-slot-names (class)
-  (:documentation "")
+(defgeneric direct-slot-names (class-specifier)
+  (:documentation "Returns a list of the names of the slots that are defined _directly_ in the class-specifier \(as opposed to slots defined in superclasses\).")
   (:method ((class symbol))
            (direct-slot-names (find-class class)))
   (:method ((class standard-object))
@@ -262,23 +264,23 @@ class, not an instance of the class.")
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods (thing &rest args 
-                             &key (dry-run? nil) (verbose? dry-run?)
-                             (ignore-errors? nil))
-  "Removes all methods associated with thing. Thing can be a class, object representing a class or symbol naming a class. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed. Returns the number of methods that are removed \(or that would have been removed if dry-run? is true\)."
+(defun remove-methods (class-specifier &rest args 
+                                       &key (dry-run? nil) (verbose? dry-run?)
+                                       (ignore-errors? nil))
+  "Removes all methods associated with class-specifier. Class-specifier can be a class, object representing a class or symbol naming a class. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed. Returns the number of methods that are removed \(or that would have been removed if dry-run? is true\)."
   (declare (ignore verbose? ignore-errors?)
            (dynamic-extent args))
-  (apply #'remove-methods-if thing (constantly t) args))
+  (apply #'remove-methods-if class-specifier (constantly t) args))
 
 ;;; ---------------------------------------------------------------------------
 
-(defun remove-methods-if (thing predicate &key (dry-run? nil) (verbose? dry-run?)
-                                (ignore-errors? nil))
-  "Removes all methods associated with thing that pass a predicate. Thing can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed. Returns the number of methods that are removed \(or that would have been removed if dry-run? is true\)."
-  (let ((class (get-class thing))
+(defun remove-methods-if (class-specifier predicate &key (dry-run? nil) (verbose? dry-run?)
+                                          (ignore-errors? nil))
+  "Removes all methods associated with class-specifier that pass a predicate. Class-specifier can be a class, object representing a class or symbol naming a class. The predicate should be a function of two arguments: a generic-function and a method. If dry-run? is true \(and verbose? is also true\), then the methods that would be removed are printed but no methods are actually removed. Returns the number of methods that are removed \(or that would have been removed if dry-run? is true\)."
+  (let ((class (get-class class-specifier))
         (count 0))
     (if class
-      (map-methods thing 
+      (map-methods class 
                    (lambda (gf m) 
                      (when (funcall predicate gf m)
                        (incf count)
@@ -287,7 +289,7 @@ class, not an instance of the class.")
                        (unless dry-run?
                          (remove-method gf m)))))
       (unless ignore-errors?
-        (error "Class '~A' not found." thing)))
+        (error "Class '~A' not found." class-specifier)))
     (values count)))
 
 ;;; ---------------------------------------------------------------------------
@@ -422,7 +424,7 @@ description.  Otherwise signal an error if errorp is t."
 
 ;;; ---------------------------------------------------------------------------
 
-(defun mopu-arglist (symbol)
+(defun function-arglist (symbol)
   "Returns two values, the arglist of symbol"
   #+MCL
   (ccl:arglist symbol)
@@ -433,7 +435,7 @@ description.  Otherwise signal an error if errorp is t."
   #+sbcl
   (sb-introspect:function-arglist symbol)
   #-(or MCL LISPWORKS ALLEGRO SBCL)
-  (nyi "mopu-arglist"))
+  (nyi "function-arglist"))
 
 ;;; ---------------------------------------------------------------------------
 

@@ -232,3 +232,32 @@ copy-template
   get-error-for-missing-class
   (ensure-error (map-methods 'fffffff #'print))
   (ensure-error (direct-specializers-of 'fffffff)))
+
+;;; ---------------------------------------------------------------------------
+
+(deftestsuite test-function-arglist (test-moptilities) ())
+
+(defun test-function-arglist-1 (a b &optional c)
+  (declare (ignore a b c)))
+
+(addtest (test-function-arglist)
+  test-1
+  (ensure-same (function-arglist 'test-function-arglist-1) 
+               '(a b &optional c) :test 'equal))
+
+(defun test-function-arglist-2 (&key a (b 2))
+  (declare (ignore a b)))
+
+(addtest (test-function-arglist)
+  test-2
+  (ensure-same (function-arglist 'test-function-arglist-2) 
+               '(&key :a :b) :test 'equal))
+
+(defun test-function-arglist-3 (&aux a)
+  (declare (ignore a)))
+
+(addtest (test-function-arglist)
+  test-3
+  (ensure-same (function-arglist 'test-function-arglist-3) 
+               nil :test 'equal))
+
