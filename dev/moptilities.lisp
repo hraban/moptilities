@@ -181,8 +181,8 @@ class, not an instance of the class.")
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric slot-properties (class slot-name)
-  (:documentation "Returns a property list descring the slot named slot-name in class.")
+(defgeneric slot-properties (class-specifier slot-name)
+  (:documentation "Returns a property list describing the slot named slot-name in class-specifier.")
   (:method ((class symbol) slot-name)
            (slot-properties (find-class class) slot-name))
   (:method ((object standard-object) slot-name)
@@ -201,24 +201,32 @@ class, not an instance of the class.")
                          `(:type ,(slot-definition-type slot-info)))
                      ,@(unless indirect-slot?
                          `(:readers ,(slot-definition-readers slot-info)
-                                    :writers ,(slot-definition-writers slot-info)))))))
+                                    :writers ,(slot-definition-writers slot-info)))
+                     :documentation ,(documentation slot-info t)))))
+
+;;; ---------------------------------------------------------------------------
+
+#+NotYet
+(defgeneric slot-documentation (class-specifier slot-name)
+  (:documentation "Returns the documentation for slot-name in the class specified by class-specifier.")
+  (:method (class-specifier slot-name)
+           (let ((class (get-class class-specifier)))
+             (documentation (get-slot-definition class slot-name) t))))
 
 ;;; ---------------------------------------------------------------------------
 
 (defgeneric get-slot-definition (class slot-name)
-  (:method ((class symbol) slot-name)
-           (get-slot-definition (find-class class) slot-name))
-  (:method ((object standard-object) slot-name)
-           (get-slot-definition (class-of object) slot-name))
-  (:method ((class class) slot-name)
-           (let* ((indirect-slot? nil)
-                  (slot-info 
-                   (or (find slot-name (class-direct-slots class)
-                             :key #'slot-definition-name)
-                       (and (setf indirect-slot? t)
-                            (find slot-name (class-slots class)
-                                  :key #'slot-definition-name)))))
-             (values slot-info indirect-slot?))))
+  (:documentation "Returns the slot-definition for the slot named `slot-name` in the class specified by `class-specifier`. Also returns \(as a second value\) true if the slot is an indirect slot of the class.")
+  (:method ((class-specifier t) slot-name)
+           (let ((class (get-class class-specifier)))
+             (let* ((indirect-slot? nil)
+                    (slot-info 
+                     (or (find slot-name (class-direct-slots class)
+                               :key #'slot-definition-name)
+                         (and (setf indirect-slot? t)
+                              (find slot-name (class-slots class)
+                                    :key #'slot-definition-name)))))
+               (values slot-info indirect-slot?)))))
   
 ;;; ---------------------------------------------------------------------------
 
@@ -641,6 +649,8 @@ description.  Otherwise signal an error if errorp is t."
   (schedule-finalization object 'when-garbage-collected)
   #-(or MCL ALLEGRO)
   (nyi 'care-when-garbage-collected))
+
+
 
 ;;; ***************************************************************************
 ;;; *                              End of File                                *
