@@ -37,17 +37,17 @@ questions, comments or concerns, just drop " (rw:link :mail-gwking :title "Gary 
       
       ((:A :NAME "news"))
       (:H3 "What is happening")
-      ((:TABLE :CLASS "news-table") 
-       ((:TR :ALIGN "left" :VALIGN "top")
-        ((:TD) "17 Dec 2005")
+      ((:TABLE :CLASS "system-news") 
+       (:TR
+        (:TH "17 Dec 2005")
         (:TD "Rewrote moptilities on top of Closer to MOP; changed all the names to protect the innocent."))
        
-       ((:TR :ALIGN "left" :VALIGN "top")
-        ((:TD) "14 Nov 2005")
+       (:TR
+        (:TH "14 Nov 2005")
         (:TD "Added tarball, etc."))
        
-       ((:TR :ALIGN "left" :VALIGN "top")
-        ((:TD) "13 Nov 2005")
+       (:TR
+        (:TH "13 Nov 2005")
         (:TD "Initial setup.")))))
     
     
