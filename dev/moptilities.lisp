@@ -29,6 +29,7 @@
    #:get-slot-definition
 
    #:slot-names
+   #:default-initargs
    #:direct-slot-names
    #:slot-properties
       
@@ -42,8 +43,6 @@
    #:finalize-class-if-necessary
    #:leaf-class-p
    #:leaf-subclasses
-   
-   #+Ignore #:path-from-class-to-class
    
    #:class
    #:get-class
@@ -86,15 +85,18 @@ ignored by the compiler."
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric get-class (thing)
+(defgeneric get-class (thing &key error?)
   (:documentation "Returns the class of thing or nil if the class cannot be found. Thing can be a class, an object representing a class or a symbol naming a class. Get-class is like find-class only not as particular.")
-  (:method ((thing symbol))
-           (find-class thing nil))
-  (:method ((thing standard-object)) 
+  (:method ((thing symbol) &key error?)
+           (find-class thing error?))
+  (:method ((thing standard-object) &key error?)
+           (declare (ignore error?))
            (class-of thing))
-  (:method ((thing t)) 
+  (:method ((thing t) &key error?) 
+           (declare (ignore error?))
            (class-of thing))
-  (:method ((thing class))
+  (:method ((thing class) &key error?)
+           (declare (ignore error?))
            thing))
 
 ;;; ---------------------------------------------------------------------------
@@ -470,6 +472,13 @@ description.  Otherwise signal an error if errorp is t."
            thing))
 
 ;;; ---------------------------------------------------------------------------
+
+(defun default-initargs (class-specifier)
+  "Returns a list of default initarg information for the class-specifier. This list consists of triples in the format <initarg value function>. The initarg is the initarg corresponding to the default-initarg; the value is the value it will default to and the function is a function of zero-arguments that returns value... \(this is subject to minor changes\)."
+  (compute-default-initargs (get-class class-specifier)))
+                     
+
+;;; ---------------------------------------------------------------------------
 ;;; leaf classes
 ;;; ---------------------------------------------------------------------------
 
@@ -646,7 +655,7 @@ description.  Otherwise signal an error if errorp is t."
   #+MCL
   (ccl:terminate-when-unreachable object)
   #+ALLEGRO
-  (schedule-finalization object 'when-garbage-collected)
+  (excl:schedule-finalization object 'when-garbage-collected)
   #-(or MCL ALLEGRO)
   (nyi 'care-when-garbage-collected))
 
