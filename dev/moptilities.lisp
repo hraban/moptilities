@@ -57,16 +57,32 @@
    
    #:on-becoming-garbage)
   
-  
   (:export 
    #:generic-function-methods
    #:method-specializers)
   
-  ;; should just re-export the whole mop
+  ;; MOP bits and pieces we care about
   (:export
    #:method-generic-function
    #:generic-function-name
+   #:generic-function-argument-precedence-order
+   #:generic-function-declarations
+   #:generic-function-lambda-list
+   #:generic-function-method-class
+   #:generic-function-method-combination
+   #:generic-function-methods
+   #:generic-function-name
+   
+   #:method-combination-name
    ))
+
+#+Ignore
+;; not yet, causes packaging problems downstream
+(eval-when (:compile-toplevel)
+  (let ((syms (loop for sym being the external-symbols of :c2mop
+                    collect sym)))
+    (import syms "MOPTILITIES")
+    (export syms "MOPTILITIES")))
 
 (in-package "MOPTILITIES")
 
