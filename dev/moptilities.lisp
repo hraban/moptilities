@@ -472,7 +472,9 @@ description.  Otherwise signal an error if errorp is t."
     (ccl::class-slot-initargs class)
     #+lispworks
     (lw-tools::class-initargs class)
-    #-(or MCL LISPWORKS4)
+    #+allegro
+    nil
+    #-(or MCL LISPWORKS4 ALLEGRO)
     (nyi "mopu-class-initargs")))
 
 ;;; ---------------------------------------------------------------------------
