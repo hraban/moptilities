@@ -8,10 +8,10 @@
   (require 'sb-introspect)              ; for function-arglist
 )
 
-(defpackage "METABANG.MOPTILITIES"
+(defpackage #:metabang.moptilities
   (:documentation "Moptilities builds on the Lisp Meta-Object Protodol (MOP).")
-  (:use "CLOSER-COMMON-LISP")
-  (:nicknames "MOPU" "MOPTILITIES")
+  (:use #:closer-common-lisp)
+  (:nicknames #:mopu #:moptilities)
   (:export
    #:map-methods 
    #:remove-methods
@@ -84,11 +84,11 @@
     (import syms "MOPTILITIES")
     (export syms "MOPTILITIES")))
 
-(in-package "MOPTILITIES")
+(in-package #:moptilities)
 
 ;;; ---------------------------------------------------------------------------
 
-(defmacro NYI (function-name &rest args)
+(defmacro nyi (function-name &rest args)
   "Signals an error saying that this function is not yet implemented.  The args
 are ignored, but by supplying args from the calling function, you can get them
 ignored by the compiler."
@@ -184,9 +184,9 @@ class, not an instance of the class.")
            (mapcar #'slot-definition-name (class-slots class)))
   (:method ((class symbol))
            (cond ((get-structure class nil)
-                  #+MCL
+                  #+(or DIGITOOL OPENMCL)
                   (mapcar #'first (rest (aref (get-structure class nil) 1)))
-                  #-(or MCL)
+                  #-(or DIGITOOL OPENMCL)
                   (nyi "slot-names for structures"))
                  ((find-class class nil)
                   (slot-names (find-class class)))
@@ -421,15 +421,15 @@ the class itself is not included in the mapping. Proper? defaults to nil."
 If `name' has been defined as a structure then return its
 description.  Otherwise signal an error if errorp is t."
   (declare (ignorable name errorp))
-  #+(or MCL LISPWORKS4)
-  (let ((found (or #+MCL (ccl::structure-class-p name)
+  #+(or DIGITOOL OPENMCL LISPWORKS4)
+  (let ((found (or #+(or DIGITOOL OPENMCL) (ccl::structure-class-p name)
                    #+Lispworks4 (structure:type-structure-predicate name))))
     (cond (found
            (values t))
           (t
            (when errorp
              (error "~s is not the name of a defstruct." name)))))
-  #-(or MCL LISPWORKS)
+  #-(or DIGITOOL OPENMCL LISPWORKS)
   (nyi "get-structure")) 
 
 ;;; ---------------------------------------------------------------------------
@@ -452,7 +452,7 @@ description.  Otherwise signal an error if errorp is t."
 
 (defun function-arglist (symbol)
   "Returns two values, the arglist of symbol"
-  #+MCL
+  #+(or DIGITOOL OPENMCL)
   (ccl:arglist symbol)
   #+lispworks
   (lw:function-lambda-list symbol)
@@ -460,7 +460,7 @@ description.  Otherwise signal an error if errorp is t."
   (common-lisp-user::arglist symbol)
   #+sbcl
   (sb-introspect:function-arglist symbol)
-  #-(or MCL LISPWORKS ALLEGRO SBCL)
+  #-(or DIGITOOL OPENMCL LISPWORKS allegro SBCL)
   (nyi "function-arglist"))
 
 ;;; ---------------------------------------------------------------------------
@@ -468,13 +468,13 @@ description.  Otherwise signal an error if errorp is t."
 (defun mopu-class-initargs (thing) 
   (let ((class (get-class thing)))
     (declare (ignorable class))
-    #+MCL
+    #+(or DIGITOOL OPENMCL)
     (ccl::class-slot-initargs class)
     #+lispworks
     (lw-tools::class-initargs class)
     #+allegro
     nil
-    #-(or MCL LISPWORKS4 ALLEGRO)
+    #-(or DIGITOOL OPENMCL LISPWORKS4 allegro)
     (nyi "mopu-class-initargs")))
 
 ;;; ---------------------------------------------------------------------------
@@ -581,11 +581,11 @@ description.  Otherwise signal an error if errorp is t."
     (nreverse result)))
 
 (build-generalized-mopu-method mopu-class-initargs (class)
-  #+MCL
+  #+(or DIGITOOL OPENMCL)
   (ccl::class-slot-initargs class)
   #+lispworks
   (lw-tools::class-initargs class)
-  #-(or MCL LISPWORKS4)
+  #-(or DIGITOOL OPENMCL LISPWORKS4)
   (nyi "mopu-class-initargs"))
 
 (build-generalized-mopu-method leaf-subclasses (class)
@@ -670,11 +670,11 @@ description.  Otherwise signal an error if errorp is t."
 ;;; ---------------------------------------------------------------------------
 
 (defun care-when-garbage-collected (object)
-  #+MCL
+  #+(or DIGITOOL OPENMCL)
   (ccl:terminate-when-unreachable object)
-  #+ALLEGRO
+  #+allegro
   (excl:schedule-finalization object 'when-garbage-collected)
-  #-(or MCL ALLEGRO)
+  #-(or DIGITOOL OPENMCL allegro)
   (nyi 'care-when-garbage-collected))
 
 
