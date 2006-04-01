@@ -117,10 +117,16 @@ ignored by the compiler."
 
 ;;; ---------------------------------------------------------------------------
 
+(defgeneric subclassp (child parent)
+  (:documentation "Returns t if child and parent both specifies classes and child is a subclass of the parent."))
+
+;;; ---------------------------------------------------------------------------
+
 (defmethod subclassp (child parent)
-  "Returns t if child is a subclass of the parent."
-  (finalize-class-if-necessary child)
-  (not (null (find (get-class parent) (superclasses child)))))
+  (let ((child-class (get-class child))
+        (parent-class (get-class parent)))
+    (finalize-class-if-necessary child-class)
+    (not (null (find parent-class (superclasses child-class))))))
 
 ;;; ---------------------------------------------------------------------------
 
@@ -607,39 +613,41 @@ description.  Otherwise signal an error if errorp is t."
   (:method ((thing class))
            (class-name thing)))
 
-
 ;;; ---------------------------------------------------------------------------
-;;; copy-template
-;;; suppose you have an object
-;;; ? (defclass foo ()
-;;;     ((test :accessor test :initform #'equal :initarg :test))) =>
-;;; #<STANDARD-CLASS FOO>
-;;; 
-;;; ? (setf *foo* (make-instance 'foo :test #'eql))
-;;;
-;;; ? (test *foo*) => #'eql 
-;;; 
-;;; Now you want to make another instance of foo that has the test as foo.
-;;; 
-;;; ? (setf *new-foo* (make-instance (type-of foo)))
-;;;
-;;; ? (test *new-foo*) => #'equal
-;;;
-;;; Wait, we wanted *new-foo* to have slot test to be #'eql.  This seems trival
-;;; for simple objects, but consider this from make-filtered-graph
-;;;
-;;; (make-graph (type-of old-graph)
-;;;              :vertex-test (vertex-test old-graph) 
-;;;              :vertex-key (vertex-key old-graph)
-;;;              :edge-test (edge-test old-graph)
-;;;              :edge-key (edge-key old-graph)
-;;;              :default-edge-type (default-edge-type old-graph)
-;;;              :default-edge-class (default-edge-class old-graph)
-;;;              :directed-edge-class (directed-edge-class old-graph)
-;;;              :undirected-edge-class (undirected-edge-class old-graph))))
-;;; Yuck!
-;;; 
-;;; So we offer copy-template as a reasonable, though not perfect, solution
+
+(defgeneric copy-template (object)
+  (:documentation "
+suppose you have an object
+
+? (defclass foo ()
+    ((test :accessor test :initform #'equal :initarg :test)))
+==> #<STANDARD-CLASS FOO>
+
+? (setf *foo* (make-instance 'foo :test #'eql))
+? (test *foo*) => #'eql 
+
+Now you want to make another instance of foo that has the test as foo.
+
+? (setf *new-foo* (make-instance (type-of foo)))
+? (test *new-foo*) => #'equal
+
+Wait, we wanted *new-foo* to have slot test to be #'eql.  This seems trival
+for simple objects, but consider this from make-filtered-graph
+
+(make-graph (type-of old-graph)
+             :vertex-test (vertex-test old-graph) 
+             :vertex-key (vertex-key old-graph)
+             :edge-test (edge-test old-graph)
+             :edge-key (edge-key old-graph)
+             :default-edge-type (default-edge-type old-graph)
+             :default-edge-class (default-edge-class old-graph)
+             :directed-edge-class (directed-edge-class old-graph)
+             :undirected-edge-class (undirected-edge-class old-graph))))
+Yuck!
+
+So we offer copy-template as a reasonable, though not perfect, solution.
+"))
+
 ;;; ---------------------------------------------------------------------------
 
 (defmethod copy-template ((object standard-object))
