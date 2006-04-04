@@ -465,7 +465,7 @@ description.  Otherwise signal an error if errorp is t."
   #+allegro
   (common-lisp-user::arglist symbol)
   #+sbcl
-  (sb-introspect:function-arglist symbol)
+  (sb-introspect:function-arglist (fdefinition symbol))
   #-(or DIGITOOL OPENMCL LISPWORKS allegro SBCL)
   (nyi "function-arglist"))
 
