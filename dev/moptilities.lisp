@@ -9,7 +9,7 @@
 )
 
 (defpackage #:metabang.moptilities
-  (:documentation "Moptilities builds on the Lisp Meta-Object Protodol (MOP).")
+  (:documentation "Moptilities builds on the Lisp Meta-Object Protocol (MOP).")
   (:use #:closer-common-lisp)
   (:nicknames #:mopu #:moptilities)
   (:export
@@ -683,7 +683,7 @@ So we offer copy-template as a reasonable, though not perfect, solution.
   #+allegro
   (excl:schedule-finalization object 'when-garbage-collected)
   #-(or DIGITOOL OPENMCL allegro)
-  (nyi 'care-when-garbage-collected))
+  (nyi 'care-when-garbage-collected object))
 
 
 
