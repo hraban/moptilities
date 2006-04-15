@@ -1,25 +1,29 @@
 ;;;; -*- Mode: Common-Lisp; Package: CL-USER; Base: 10 -*-
 
-(in-package cl-user)
+#| do something useful with this...
+(in-package :moptilities)
 
-(defpackage "TESTS.MOPTILITIES.METABANG"
-  (:documentation "Tests for Moptilities")
-  (:use "MOPTILITIES" "LIFT" "COMMON-LISP")
-  (:nicknames "TEST-MOPTILITIES"))
+(defclass testing-class ()
+  ((slot-1 :reader rslot-1-a :reader rslot-1-b
+           :writer wslot-1-a :writer wslot-1-b
+           :accessor aslot-1-a :accessor aslot-1-b)))
 
-(in-package "TEST-MOPTILITIES")
+(slot-properties 'testing-class 'slot-1)
+|#
+
+(in-package moptilities-test)
 
 ;;; ---------------------------------------------------------------------------
-;;; test-moptilities
+;;; moptilities-test
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-moptilities () ())
+(deftestsuite moptilities-test () ())
 
 ;;; ---------------------------------------------------------------------------
 ;;; test-get-class
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-get-class (test-moptilities)
+(deftestsuite test-get-class (moptilities-test)
   ())
 
 (addtest (test-get-class)
@@ -55,7 +59,7 @@
 ;;; test-superclasses
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-superclasses (test-moptilities) ())
+(deftestsuite test-superclasses (moptilities-test) ())
 
 (addtest (test-superclasses)
   test-l0-a 
@@ -92,7 +96,7 @@
 ;;; direct-superclasses
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-direct-superclasses (test-moptilities) ())
+(deftestsuite test-direct-superclasses (moptilities-test) ())
 
 (addtest (test-direct-superclasses)
   test-l0-a 
@@ -124,7 +128,7 @@
 ;;; subclasses
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-subclasses (test-moptilities) ())
+(deftestsuite test-subclasses (moptilities-test) ())
 
 ;;?? is the order really invariant
 (addtest (test-subclasses)
@@ -162,7 +166,7 @@
 ;;; direct-subclasses
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-direct-subclasses (test-moptilities) ())
+(deftestsuite test-direct-subclasses (moptilities-test) ())
 
 (addtest (test-direct-subclasses)
   test-l0-a 
@@ -226,7 +230,7 @@ copy-template
 |#
 
 
-(deftestsuite test-map-methods (test-moptilities) ())
+(deftestsuite test-map-methods (moptilities-test) ())
 
 (addtest (test-map-methods) 
   get-error-for-missing-class
@@ -235,7 +239,7 @@ copy-template
 
 ;;; ---------------------------------------------------------------------------
 
-(deftestsuite test-function-arglist (test-moptilities) ())
+(deftestsuite test-function-arglist (moptilities-test) ())
 
 (defun test-function-arglist-1 (a b &optional c)
   (declare (ignore a b c)))

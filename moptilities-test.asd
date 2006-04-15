@@ -17,7 +17,8 @@ See the file COPYING for details
   :description "Test for Common Lisp MOP utilities"
 
   :components ((:module "test"
-                        :components ((:file "tests")))
+                        :components ((:file "package")
+                                     (:file "tests" :depends-on ("package"))))
                
                (:module "dev"
                         :components ((:static-file "notes.text"))))
@@ -25,10 +26,10 @@ See the file COPYING for details
   :perform (test-op :after (op c)
                     (describe
                      (funcall 
-                      (intern "RUN-TESTS" "LIFT") 
+                      (intern (symbol-name (read-from-string "run-tests")) :lift) 
                       :suite (intern 
-                              "TEST-MOPTILITIES"
-                              "TEST-MOPTILITIES"))))
+                              (symbol-name (read-from-string "moptilities-test"))
+                              :moptilities-test))))
   :depends-on (moptilities lift))
 
 ;;; ---------------------------------------------------------------------------
