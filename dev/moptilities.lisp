@@ -74,6 +74,8 @@
    #:generic-function-name
    
    #:method-combination-name
+   #:when-finalized
+   #:care-when-finalized
    ))
 
 #+Ignore
@@ -667,24 +669,29 @@ So we offer copy-template as a reasonable, though not perfect, solution.
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric when-garbage-collected (thing)
+(defgeneric when-finalized (thing)
   (:documentation ""))
 
 ;;; ---------------------------------------------------------------------------
 
-(defmethod when-garbage-collected ((object t))
+(defmethod when-finalized ((object t))
   nil)
 
 ;;; ---------------------------------------------------------------------------
 
-(defun care-when-garbage-collected (object)
+(defun care-when-finalized (object)
   #+(or DIGITOOL OPENMCL)
   (ccl:terminate-when-unreachable object)
   #+allegro
-  (excl:schedule-finalization object 'when-garbage-collected)
-  #-(or DIGITOOL OPENMCL allegro)
-  (nyi 'care-when-garbage-collected object))
+  (excl:schedule-finalization object 'when-finalized)
+  #+sbcl
+  (sb-ext:finalize object 'when-finalized)
+  #-(or DIGITOOL OPENMCL allegro sbcl)
+  (nyi 'care-when-finalized object))
 
+#+(or digitool openmcl)
+(defmethod ccl:terminate :after ((object t))
+  (when-finalized object))
 
 
 ;;; ***************************************************************************
