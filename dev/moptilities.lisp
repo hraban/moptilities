@@ -501,6 +501,12 @@ description.  Otherwise signal an error if errorp is t."
 
 (defun default-initargs (class-specifier)
   "Returns a list of default initarg information for the class-specifier. This list consists of triples in the format <initarg value function>. The initarg is the initarg corresponding to the default-initarg; the value is the value it will default to and the function is a function of zero-arguments that returns value... \(this is subject to minor changes\)."
+  (delete-duplicates
+   (append 
+    (class-direct-default-initargs (get-class class-specifier))
+    (class-default-initargs (get-class class-specifier)))
+   :test #'equal)
+  #+Old
   (compute-default-initargs (get-class class-specifier)))
                      
 
