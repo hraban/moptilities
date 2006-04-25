@@ -183,6 +183,27 @@ ignored by the compiler."
 
 ;;; ---------------------------------------------------------------------------
 
+(defgeneric get-function (function-designator)
+  (:documentation "")
+  (:method ((function symbol))
+           (if (fboundp function)
+             (symbol-function function)
+             nil))
+  (:method ((function standard-generic-function))
+           (values function)))
+
+;;; ---------------------------------------------------------------------------
+
+(defun remove-generic-function (function-designator)
+  (let ((function (get-function function-designator))) 
+    (mapc (lambda (m) 
+            (remove-method function m))
+          (generic-function-methods function))
+    ;; how do you remove a gf?
+    (fmakunbound (generic-function-name function))))
+
+;;; ---------------------------------------------------------------------------
+
 (defgeneric slot-names (class)
   (:documentation "Returns a list of the names of the slots of a class (including
 both direct and inherited slots). It's like class-slot-names but on the

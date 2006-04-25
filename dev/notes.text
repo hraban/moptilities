@@ -1,3 +1,9 @@
+being able to remove methods of a gf should be easier
+
+(defun remove-generic-function (function-designator)
+  (let ((function (get-function 
+(mapc (lambda (m) (print m)) (generic-function-methods (symbol-function 'display-part)))
+
 
 with-unique-names / with-gensyms is very high on the list of must haves
 
