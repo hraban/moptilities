@@ -55,7 +55,10 @@
    #:function-arglist
    #:mopu-class-initargs
    
-   #:on-becoming-garbage)
+   #:when-finalized
+   #:care-when-finalized
+   #:ignore-finalization
+   #:*debugging-finalization*)
   
   (:export 
    #:generic-function-methods
@@ -74,8 +77,6 @@
    #:generic-function-name
    
    #:method-combination-name
-   #:when-finalized
-   #:care-when-finalized
    ))
 
 #+Ignore
@@ -696,8 +697,13 @@ So we offer copy-template as a reasonable, though not perfect, solution.
 
 ;;; ---------------------------------------------------------------------------
 
+(defvar *debugging-finalization* nil
+  "When true, finalization messages are printed to *debug-io*")
+
+;;; ---------------------------------------------------------------------------
+
 (defgeneric when-finalized (thing)
-  (:documentation ""))
+  (:documentation "Called just before an object is garbage collected if care-when-finalize has been called on the object."))
 
 ;;; ---------------------------------------------------------------------------
 
@@ -706,7 +712,15 @@ So we offer copy-template as a reasonable, though not perfect, solution.
 
 ;;; ---------------------------------------------------------------------------
 
+(defmethod when-finalized :around ((object t))
+  (when *debugging-finalization*
+    (format *debug-io* "~%Finalizing ~S" object)
+    (call-next-method)))
+
+;;; ---------------------------------------------------------------------------
+
 (defun care-when-finalized (object)
+  "Ensures the when-finalized is called on the object just before it is garbage collected."
   #+(or DIGITOOL OPENMCL)
   (ccl:terminate-when-unreachable object)
   #+allegro
@@ -715,6 +729,17 @@ So we offer copy-template as a reasonable, though not perfect, solution.
   (sb-ext:finalize object 'when-finalized)
   #-(or DIGITOOL OPENMCL allegro sbcl)
   (nyi 'care-when-finalized object))
+
+;;; ---------------------------------------------------------------------------
+
+(defun ignore-finalization (object)
+  "Prevents care-when-finalized from being called on object just before it is garbage collected."
+  #+(or digitool openmcl)
+  (ccl:cancel-terminate-when-unreachable object)
+  #-(or digitool openmcl)
+  (nyi 'care-when-finalized object))
+
+;;; ---------------------------------------------------------------------------
 
 #+(or digitool openmcl)
 (defmethod ccl:terminate :after ((object t))
