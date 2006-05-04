@@ -713,9 +713,9 @@ So we offer copy-template as a reasonable, though not perfect, solution.
 ;;; ---------------------------------------------------------------------------
 
 (defmethod when-finalized :around ((object t))
+  (call-next-method)
   (when *debugging-finalization*
-    (format *debug-io* "~%Finalizing ~S" object)
-    (call-next-method)))
+    (format *debug-io* "~%Finalized ~S" object)))
 
 ;;; ---------------------------------------------------------------------------
 
