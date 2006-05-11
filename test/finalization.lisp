@@ -1,4 +1,4 @@
-(in-package moptilities-test)
+(in-package #:moptilities-test)
 
 (defclass class-for-finalization-test ()
   ())

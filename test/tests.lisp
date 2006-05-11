@@ -11,7 +11,7 @@
 (slot-properties 'testing-class 'slot-1)
 |#
 
-(in-package moptilities-test)
+(in-package #:moptilities-test)
 
 ;;; ---------------------------------------------------------------------------
 ;;; moptilities-test

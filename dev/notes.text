@@ -1,9 +1,64 @@
+#| montezuma warnings
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:index:multi-reader.lisp" :
+;   Unused lexical variable FIXME, in (READ-SEGMENT-TERM-DOC-ENUM
+                                        (MULTI-TERM-DOC-ENUM T T)).
+; Warning: COMPILE-FILE warned while performing #<COMPILE-OP NIL #xEB3E85E> on
+;                     #<CL-SOURCE-FILE "multi-reader" #xEB234DE>.
+; While executing: #<STANDARD-METHOD ASDF:PERFORM (COMPILE-OP
+                                                   ASDF:CL-SOURCE-FILE)>
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:search:boolean-scorer.lisp" :
+;   Unused lexical variable REQUIRED-NUM-MATCHERS, in (COUNTING-CONJUNCTION-SUM-SCORER
+                                                       (BOOLEAN-SCORER T)).
+; Warning: COMPILE-FILE warned while performing #<COMPILE-OP NIL #xEB3E85E> on
+;                     #<CL-SOURCE-FILE "boolean-scorer" #xEB1A336>.
+; While executing: #<STANDARD-METHOD ASDF:PERFORM (COMPILE-OP
+                                                   ASDF:CL-SOURCE-FILE)>
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:search:index-searcher.lisp" :
+;   Unused lexical variable OPTIONS, in (SEARCH-EACH (INDEX-SEARCHER QUERY T)).
+; Warning: COMPILE-FILE warned while performing #<COMPILE-OP NIL #xEB3E85E> on
+;                     #<CL-SOURCE-FILE "index-searcher" #xEB1C0FE>.
+; While executing: #<STANDARD-METHOD ASDF:PERFORM (COMPILE-OP
+                                                   ASDF:CL-SOURCE-FILE)>
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:search:index-searcher.lisp" :
+;   Undefined function MONTEZUMA::HITS, in (MONTEZUMA::SEARCH-EACH
+                                            (MONTEZUMA:INDEX-SEARCHER
+                                             MONTEZUMA::QUERY
+                                             T)).
+;   Undefined function MONTEZUMA::YIELD, in an anonymous lambda form inside (MONTEZUMA::SEARCH-EACH
+                                                                             (MONTEZUMA:INDEX-SEARCHER
+                                                                              MONTEZUMA::QUERY
+                                                                              T)).
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:search:wildcard-term-enum.lisp" :
+;   Undefined function MONTEZUMA::FIELD=, in (MONTEZUMA::TERM-COMPARE
+                                              (MONTEZUMA::WILDCARD-TERM-ENUM
+                                               T)).
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:search:boolean-scorer.lisp" :
+;   Undefined function MONTEZUMA::MAKE-COUNTING-SUM-SCORER3, in (MONTEZUMA::MAKE-COUNTING-SUM-SCORER2
+                                                                 (MONTEZUMA::BOOLEAN-SCORER
+                                                                  T
+                                                                  T)).
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:search:term-query.lisp" :
+;   Undefined function MONTEZUMA:: << , in (MONTEZUMA::EXTRACT-TERMS
+                                          (MONTEZUMA:TERM-QUERY T)).
+;   Undefined function MONTEZUMA::<< (2 references), in (MONTEZUMA::EXPLAIN-SCORE
+                                                         (MONTEZUMA::TERM-WEIGHT
+                                                          T
+                                                          T)).
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:index:index.lisp" :
+;   Undefined function SETF::MONTEZUMA:: GET-FIELD (2 references), in an anonymous lambda form inside (MONTEZUMA::QUERY-UPDATE
+                                                                                                      (MONTEZUMA:INDEX
+                                                                                                       T
+                                                                                                       T)).
+;Compiler warnings for "Billy-Pilgrim:repository:darcs:montezuma:index:index-writer.lisp" :
+;   Undefined function MONTEZUMA::ADD-SEGMENT, in (MONTEZUMA::ADD-INDEXES-READERS
+                                                   (MONTEZUMA:INDEX-WRITER T)).
+NIL
+? 
+#<Package "MONTEZUMA">
+? (t
+|#
+
 being able to remove methods of a gf should be easier
-
-(defun remove-generic-function (function-designator)
-  (let ((function (get-function 
-(mapc (lambda (m) (print m)) (generic-function-methods (symbol-function 'display-part)))
-
 
 with-unique-names / with-gensyms is very high on the list of must haves
 

@@ -1,7 +1,7 @@
 ;;;; -*- Mode: Common-Lisp; Package: METABANG.MOPTILITIES; Base: 10 -*-
 ;;;; some definitions are from the Art of the MOP
 
-(in-package cl-user)
+(in-package #:cl-user)
 
 #+sbcl
 (eval-when (:compile-toplevel :load-toplevel)
@@ -511,12 +511,17 @@ description.  Otherwise signal an error if errorp is t."
 
 (defgeneric eql-specializer-p (thing)
   (:documentation "If thing is an eql-specializer, returns a representation of thing as \(eql <object>\).")
+  #-(or lispworks ecl)
   (:method ((thing eql-specializer))
            (list 'eql (eql-specializer-object thing)))
   (:method ((thing t))
-    (values nil))
-  #+DIGITOOL
-  (:method ((thing cons))
+           #-(or lispworks ecl) 
+           (values nil)
+           #+(or lispworks ecl)
+           (typep obj 'eql-specializer))
+  #+digitool
+  (:method ((thing cons)) 
+           ;; don't ask, don't tell
            thing))
 
 ;;; ---------------------------------------------------------------------------

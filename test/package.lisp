@@ -1,4 +1,4 @@
-(in-package cl-user)
+(in-package #:cl-user)
 
 (defpackage #:tests.moptilities.metabang
   (:documentation "Tests for Moptilities")
