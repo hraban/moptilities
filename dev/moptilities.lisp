@@ -93,14 +93,13 @@
 
 (defmacro nyi (function-name &rest args)
   "Signals an error saying that this function is not yet implemented.  The args
-are ignored, but by supplying args from the calling function, you can get them
-ignored by the compiler."
+are ignored."
+  (declare (ignore args))
   `(error "The function ~A is not yet implemented for ~A ~A on ~A."
           ,function-name
 	  (lisp-implementation-type)
 	  (lisp-implementation-version)
-	  (machine-type)
-          . ,args))
+	  (machine-type)))
 
 ;;; ---------------------------------------------------------------------------
 
