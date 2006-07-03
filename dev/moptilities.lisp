@@ -16,6 +16,7 @@
    #:map-methods 
    #:remove-methods
    #:remove-methods-if
+   #:remove-generic-function
    #:direct-specializers-of
    #:specializers-of
    
