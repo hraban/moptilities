@@ -309,7 +309,7 @@ class, not an instance of the class.")
 ;;; ---------------------------------------------------------------------------
 
 (defun map-methods (thing fn)
-  "Applys fn to all of the methods of thing (which can be a class, object or symbol naming a class). The function should take two arguments: a generic function and a method."
+  "Applys fn to all of the direct methods of thing (which can be a class, object or symbol naming a class). The function should take two arguments: a generic function and a method."
   (let ((class (get-class thing)))
     (if class
       (loop for gf in (specializer-direct-generic-functions class) do
@@ -357,7 +357,7 @@ class, not an instance of the class.")
 ;;; ---------------------------------------------------------------------------
 
 (defun generic-functions (thing)
-  "Returns a list of all of the methods associated with thing. Thing can be a class, object, or symbol naming a class."
+  "Returns a list of all of the direct generic-functions associated with thing. Thing can be a class, object, or symbol naming a class."
   (let ((result nil))
     (map-methods thing
                  (lambda (gf m) 
