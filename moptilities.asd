@@ -11,7 +11,7 @@ See the file COPYING for details
 
 (defsystem moptilities
   :author "Gary Warren King <gwking@metabang.com>"
-  :version "0.3"
+  :version "0.3.1"
   :maintainer "Gary Warren King <gwking@metabang.com>"
   :licence "MIT Style license"
   :description "Common Lisp MOP utilities"
