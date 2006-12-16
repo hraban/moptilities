@@ -490,8 +490,21 @@ description.  Otherwise signal an error if errorp is t."
   (common-lisp-user::arglist symbol)
   #+sbcl
   (sb-introspect:function-arglist (fdefinition symbol))
-  #-(or DIGITOOL OPENMCL LISPWORKS allegro SBCL)
+  #+cmu 
+  (cmu-arglist symbol) 
+  #-(or DIGITOOL OPENMCL LISPWORKS allegro SBCL cmu)
   (nyi "function-arglist"))
+
+#+cmu
+(defun cmu-arglist (x)
+  "Adds FUNCTION-ARGLIST compatibility for CMUCL. Does not provide any
+error-handling sofar."
+  (typecase x
+    (symbol (cmu-arglist (or (macro-function x) (symbol-function x))))
+    (standard-generic-function (pcl:generic-function-lambda-list x))
+    (eval:interpreted-function (eval:interpreted-function-arglist x))
+    (compiled-function  (values (read-from-string
+				 (kernel:%function-arglist x))))))
 
 ;;; ---------------------------------------------------------------------------
 

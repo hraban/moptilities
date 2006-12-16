@@ -1,4 +1,4 @@
-;;;-*- Mode: Lisp; Package: ASDF-MOPTILITIES -*-
+;;;-*- Mode: Lisp; Package: asdf-moptilities -*-
 
 #| copyright
 
@@ -24,12 +24,9 @@ See the file COPYING for details
                         :components ((:static-file "notes.text"))))
   :in-order-to ((test-op (load-op moptilities-test)))
   :perform (test-op :after (op c)
-                    (describe
-                     (funcall 
-                      (intern (symbol-name (read-from-string "run-tests")) :lift) 
-                      :suite (intern 
-                              (symbol-name (read-from-string "moptilities-test"))
-                              :moptilities-test))))
+                    (describe 
+		     (funcall (intern (symbol-name '#:run-tests) :lift) 
+			      :suite '#:moptilities-test)))
   :depends-on (moptilities lift))
 
 ;;; ---------------------------------------------------------------------------

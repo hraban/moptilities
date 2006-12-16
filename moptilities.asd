@@ -1,4 +1,4 @@
-;;;-*- Mode: Lisp; Package: ASDF-MOPTILITIES -*-
+;;;-*- Mode: Lisp; Package: asdf-moptilities -*-
 
 #| copyright
 
@@ -11,7 +11,7 @@ See the file COPYING for details
 
 (defsystem moptilities
   :author "Gary Warren King <gwking@metabang.com>"
-  :version "0.3.1"
+  :version "0.3.2"
   :maintainer "Gary Warren King <gwking@metabang.com>"
   :licence "MIT Style license"
   :description "Common Lisp MOP utilities"
@@ -24,4 +24,13 @@ See the file COPYING for details
                (:module "website"
                         :components ((:module "source"
                                               :components ((:static-file "index.lml"))))))
+  :in-order-to ((test-op (load-op moptilities-test)))
+  :perform (test-op :after (op c)
+                    (describe 
+		     (funcall (intern (symbol-name '#:run-tests) :lift) 
+			      :suite '#:moptilities-test)))
   :depends-on (closer-mop))
+
+(defmethod operation-done-p 
+           ((o test-op) (c (eql (find-system 'moptilities))))
+  (values nil))
