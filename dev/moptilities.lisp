@@ -665,35 +665,47 @@ error-handling sofar."
 
 (defgeneric copy-template (object)
   (:documentation "
-suppose you have an object
+Suppose you make an instance of the class foo:
 
-? (defclass foo ()
-    ((test :accessor test :initform #'equal :initarg :test)))
-==> #<STANDARD-CLASS FOO>
+    (defclass foo ()
+      ((test :accessor test :initform #'equal :initarg :test)))
 
-? (setf *foo* (make-instance 'foo :test #'eql))
-? (test *foo*) => #'eql 
+    (setf *foo* (make-instance 'foo :test #'eql))
 
-Now you want to make another instance of foo that has the test as foo.
+Its `test` slot will be set to #'eql: 
 
-? (setf *new-foo* (make-instance (type-of foo)))
-? (test *new-foo*) => #'equal
+    (test *foo*) => #'eql 
 
-Wait, we wanted *new-foo* to have slot test to be #'eql.  This seems trival
-for simple objects, but consider this from make-filtered-graph
+If you want to make a structural clone (for lack of a better term) 
+of `*foo*`, you might try: 
 
-(make-graph (type-of old-graph)
-             :vertex-test (vertex-test old-graph) 
-             :vertex-key (vertex-key old-graph)
-             :edge-test (edge-test old-graph)
-             :edge-key (edge-key old-graph)
-             :default-edge-type (default-edge-type old-graph)
-             :default-edge-class (default-edge-class old-graph)
-             :directed-edge-class (directed-edge-class old-graph)
-             :undirected-edge-class (undirected-edge-class old-graph))))
+    (setf *new-foo* (make-instance (type-of *foo*)))
+
+But `*new-foo*`'s test slot won't be set properly:
+
+    (test *new-foo*) => #'equal
+
+For simple classes, this is no problem but suppose we have 
+a graph from [CL-Graph][] and want to make a copy of that: 
+
+    (make-graph (type-of old-graph)
+     :vertex-test (vertex-test old-graph) 
+     :vertex-key (vertex-key old-graph)
+     :edge-test (edge-test old-graph)
+     :edge-key (edge-key old-graph)
+     :default-edge-type (default-edge-type old-graph)
+     :default-edge-class (default-edge-class old-graph)
+     :directed-edge-class (directed-edge-class old-graph)
+     :undirected-edge-class (undirected-edge-class old-graph))))
+
 Yuck!
 
-So we offer copy-template as a reasonable, though not perfect, solution.
+Copy-template is a reasonable, though not perfect, solution to this 
+problem; it creates a structural copy of an object as such that the copy
+has all of its initargs correctly set. 
+
+  [CL-Graph]: http://common-lisp.net/projects/cl-graph/
+
 "))
 
 ;;; ---------------------------------------------------------------------------
