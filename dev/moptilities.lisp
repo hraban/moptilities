@@ -212,11 +212,13 @@ class, not an instance of the class.")
            (finalize-class-if-necessary class)
            (mapcar #'slot-definition-name (class-slots class)))
   (:method ((class symbol))
-           (cond ((get-structure class nil)
-                  #+(or DIGITOOL OPENMCL)
-                  (mapcar #'first (rest (aref (get-structure class nil) 1)))
-                  #-(or DIGITOOL OPENMCL)
-                  (nyi "slot-names for structures"))
+           ;; on sbcl a defstruct creates a structure-class that can be
+           ;; find-class'ed and mostly behaves as normal classes.
+           (cond #-sbcl((get-structure class nil)
+                        #+(or DIGITOOL OPENMCL)
+                        (mapcar #'first (rest (aref (get-structure class nil) 1)))
+                        #-(or DIGITOOL OPENMCL)
+                        (nyi "slot-names for structures"))
                  ((find-class class nil)
                   (slot-names (find-class class)))
                  (t
