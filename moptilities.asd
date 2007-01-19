@@ -11,25 +11,28 @@ See the file COPYING for details
 
 (defsystem moptilities
   :author "Gary Warren King <gwking@metabang.com>"
-  :version "0.3.3"
+  :version "0.3.4"
   :maintainer "Gary Warren King <gwking@metabang.com>"
   :licence "MIT Style license"
   :description "Common Lisp MOP utilities"
   :long-description "MOP utilities is designed to provide a common interface between lisps and make the MOP easier to use."
 
-  :components ((:module "dev"
-                        :components ((:file "moptilities")
-                                     
-                                     (:static-file "notes.text")))
-               (:module "website"
-                        :components ((:module "source"
-                                              :components ((:static-file "index.lml"))))))
+  :components
+  ((:module
+    "dev"
+    :components ((:file "moptilities")
+		 (:static-file "notes.text")))
+   (:module
+    "website"
+    :components 
+    ((:module "source"
+	      :components ((:static-file "index.lml"))))))
   :in-order-to ((test-op (load-op moptilities-test)))
   :perform (test-op :after (op c)
                     (describe 
 		     (funcall (intern (symbol-name '#:run-tests) :lift) 
 			      :suite '#:moptilities-test)))
-  :depends-on (closer-mop))
+  :depends-on (:closer-mop))
 
 (defmethod operation-done-p 
            ((o test-op) (c (eql (find-system 'moptilities))))
