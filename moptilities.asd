@@ -6,8 +6,8 @@ See the file COPYING for details
 
 |#
 
-(defpackage :asdf-moptilities (:use #:asdf #:cl))
-(in-package :asdf-moptilities)
+(defpackage #:asdf-moptilities (:use #:asdf #:cl))
+(in-package #:asdf-moptilities)
 
 (defsystem moptilities
   :author "Gary Warren King <gwking@metabang.com>"
