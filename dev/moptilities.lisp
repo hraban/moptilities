@@ -9,7 +9,7 @@
 )
 
 (defpackage #:metabang.moptilities
-  (:documentation "Moptilities builds on the Lisp Meta-Object Protocol (MOP).")
+  (:documentation "Moptilities builds on the Lisp Meta-Object Protocol (**MOP**).")
   (:use #:closer-common-lisp)
   (:nicknames #:mopu #:moptilities)
   (:export
@@ -93,8 +93,7 @@
 ;;; ---------------------------------------------------------------------------
 
 (defmacro nyi (function-name &rest args)
-  "Signals an error saying that this function is not yet implemented.  The args
-are ignored."
+  "Signals an error saying that `function-name` is not yet implemented.  The `args` are ignored."
   (declare (ignore args))
   `(error "The function ~A is not yet implemented for ~A ~A on ~A."
           ,function-name
