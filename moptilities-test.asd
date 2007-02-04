@@ -22,6 +22,6 @@ See the file COPYING for details
                
                (:module "dev"
                         :components ((:static-file "notes.text"))))
-  :depends-on (moptilities lift))
+  :depends-on (:moptilities :lift))
 
 
