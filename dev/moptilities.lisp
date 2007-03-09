@@ -1,4 +1,4 @@
-;;;; -*- Mode: Common-Lisp; Package: METABANG.MOPTILITIES; Base: 10 -*-
+;;;; -*- Mode: Common-Lisp; Package: metabang.moptilities; Base: 10 -*-
 ;;;; some definitions are from the Art of the MOP
 
 (in-package #:cl-user)
@@ -63,7 +63,11 @@
   
   (:export 
    #:generic-function-methods
-   #:method-specializers)
+   #:method-specializers
+   -   
+    #+digitool ;; trouble with deglates-to without this
+    #:mopu-find-method
+   )
   
   ;; MOP bits and pieces we care about
   (:export
@@ -90,8 +94,6 @@
 
 (in-package #:moptilities)
 
-;;; ---------------------------------------------------------------------------
-
 (defmacro nyi (function-name &rest args)
   "Signals an error saying that `function-name` is not yet implemented.  The `args` are ignored."
   (declare (ignore args))
@@ -101,7 +103,14 @@
 	  (lisp-implementation-version)
 	  (machine-type)))
 
-;;; ---------------------------------------------------------------------------
+
+#+digitool
+(defun mopu-find-method (gf-name qualifiers &rest specializers)
+  (and (fboundp gf-name)
+       (let ((def (fdefinition gf-name)))
+         (and def
+              (find-method def qualifiers
+                           (mapcar #'find-class specializers) nil)))))
 
 (defgeneric get-class (thing &key error?)
   (:documentation "Returns the class of thing or nil if the class cannot be found. Thing can be a class, an object representing a class or a symbol naming a class. Get-class is like find-class only not as particular.")
@@ -288,26 +297,21 @@ class, not an instance of the class.")
   (:method ((class class))
            (mapcar #'slot-definition-name (class-direct-slots class))))
 
-;;; ---------------------------------------------------------------------------
-
 (defgeneric reader-method-p (thing)
   (:documentation "Returns true if thing is a reader method (i.e., a subclass of standard-reader-method).")
+  #-ecl
   (:method ((m standard-reader-method))
            (values t))
   (:method ((m t))
            (values nil)))
 
-;;; ---------------------------------------------------------------------------
- 
 (defgeneric writer-method-p (thing)
   (:documentation "Returns true if thing is a writer method (i.e., a subclass of standard-writer-method).")
+  #-ecl
   (:method ((m standard-writer-method))
            (values t))
   (:method ((m t))
            (values nil)))
-
-
-;;; ---------------------------------------------------------------------------
 
 (defun map-methods (thing fn)
   "Applys fn to all of the direct methods of thing (which can be a class, object or symbol naming a class). The function should take two arguments: a generic function and a method."
@@ -318,8 +322,6 @@ class, not an instance of the class.")
                   (when (member class (method-specializers m))
                     (funcall fn gf m))))
       (error "Unable to get-class of ~A" thing))))
-
-;;; ---------------------------------------------------------------------------
 
 (defun remove-methods (class-specifier &rest args 
                                        &key (dry-run? nil) (verbose? dry-run?)
@@ -447,23 +449,27 @@ the class itself is not included in the mapping. Proper? defaults to nil."
 ;;; ---------------------------------------------------------------------------
 
 (defun get-structure (name &optional (errorp t))
-  "get-desfstruct-description name
+  "get-structure name
 
 If `name' has been defined as a structure then return its
 description.  Otherwise signal an error if errorp is t."
   (declare (ignorable name errorp))
-  #+(or DIGITOOL OPENMCL LISPWORKS4)
-  (let ((found (or #+(or DIGITOOL OPENMCL) (ccl::structure-class-p name)
+  #+(or digitool openmcl lispworks4 allegro)
+  (let ((found (or #+(or digitool openmcl) (ccl::structure-class-p name)
+                   #+allegro
+                    (let ((plist (excl::symbol-plist name)))
+                               (and plist
+                                    (listp plist)
+                                    (equal  "EXCL::%STRUCTURE-DEFINITION"
+                                            (format nil "~S" (first plist)))))
                    #+Lispworks4 (structure:type-structure-predicate name))))
     (cond (found
            (values t))
           (t
            (when errorp
              (error "~s is not the name of a defstruct." name)))))
-  #-(or DIGITOOL OPENMCL LISPWORKS)
+  #-(or digitool openmcl lispworks allegro)
   (nyi "get-structure")) 
-
-;;; ---------------------------------------------------------------------------
 
 #+Ignore
 (defun path-from-class-to-class (sub super)
@@ -479,11 +485,9 @@ description.  Otherwise signal an error if errorp is t."
                      (print it)  
                      (return c)))))))))
 
-;;; ---------------------------------------------------------------------------
-
 (defun function-arglist (symbol)
   "Returns two values, the arglist of symbol"
-  #+(or DIGITOOL OPENMCL)
+  #+(or digitool openmcl)
   (ccl:arglist symbol)
   #+lispworks
   (lw:function-lambda-list symbol)
@@ -493,7 +497,7 @@ description.  Otherwise signal an error if errorp is t."
   (sb-introspect:function-arglist (fdefinition symbol))
   #+cmu 
   (cmu-arglist symbol) 
-  #-(or DIGITOOL OPENMCL LISPWORKS allegro SBCL cmu)
+  #-(or digitool openmcl lispworks allegro sbcl cmu)
   (nyi "function-arglist"))
 
 #+cmu
@@ -506,8 +510,6 @@ error-handling sofar."
     (eval:interpreted-function (eval:interpreted-function-arglist x))
     (compiled-function  (values (read-from-string
 				 (kernel:%function-arglist x))))))
-
-;;; ---------------------------------------------------------------------------
 
 (defun mopu-class-initargs (thing) 
   (let ((class (get-class thing)))
@@ -726,42 +728,30 @@ has all of its initargs correctly set.
              (first initargs)
              initargs) (slot-value object name)))))
 
-;;; ---------------------------------------------------------------------------
-
 (defvar *debugging-finalization* nil
   "When true, finalization messages are printed to *debug-io*")
-
-;;; ---------------------------------------------------------------------------
 
 (defgeneric when-finalized (thing)
   (:documentation "Called just before an object is garbage collected if care-when-finalize has been called on the object."))
 
-;;; ---------------------------------------------------------------------------
-
 (defmethod when-finalized ((object t))
   nil)
-
-;;; ---------------------------------------------------------------------------
 
 (defmethod when-finalized :around ((object t))
   (call-next-method)
   (when *debugging-finalization*
     (format *debug-io* "~%Finalized ~S" object)))
 
-;;; ---------------------------------------------------------------------------
-
 (defun care-when-finalized (object)
   "Ensures the when-finalized is called on the object just before it is garbage collected."
-  #+(or DIGITOOL OPENMCL)
+  #+(or digitool openmcl)
   (ccl:terminate-when-unreachable object)
   #+allegro
   (excl:schedule-finalization object 'when-finalized)
   #+sbcl
   (sb-ext:finalize object 'when-finalized)
-  #-(or DIGITOOL OPENMCL allegro sbcl)
+  #-(or digitool openmcl allegro sbcl)
   (nyi 'care-when-finalized object))
-
-;;; ---------------------------------------------------------------------------
 
 (defun ignore-finalization (object)
   "Prevents care-when-finalized from being called on object just before it is garbage collected."
@@ -769,8 +759,6 @@ has all of its initargs correctly set.
   (ccl:cancel-terminate-when-unreachable object)
   #-(or digitool openmcl)
   (nyi 'care-when-finalized object))
-
-;;; ---------------------------------------------------------------------------
 
 #+(or digitool openmcl)
 (defmethod ccl:terminate :after ((object t))
