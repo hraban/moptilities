@@ -502,14 +502,16 @@ description.  Otherwise signal an error if errorp is t."
 
 #+cmu
 (defun cmu-arglist (x)
-  "Adds FUNCTION-ARGLIST compatibility for CMUCL. Does not provide any
-error-handling sofar."
-  (typecase x
-    (symbol (cmu-arglist (or (macro-function x) (symbol-function x))))
-    (standard-generic-function (pcl:generic-function-lambda-list x))
-    (eval:interpreted-function (eval:interpreted-function-arglist x))
-    (compiled-function  (values (read-from-string
-				 (kernel:%function-arglist x))))))
+  "Adds FUNCTION-ARGLIST compatibility for CMUCL."
+    (typecase x
+      (symbol (cmu-arglist (or (macro-function x) (symbol-function x))))
+      (standard-generic-function (pcl:generic-function-lambda-list x))
+      (eval:interpreted-function (eval:interpreted-function-arglist x))
+      (compiled-function 
+       (values (read-from-string
+		(or (kernel:%function-arglist (lisp::%closure-function x))
+		    "(unreadable-arglist)"))))))
+
 
 (defun mopu-class-initargs (thing) 
   (let ((class (get-class thing)))
