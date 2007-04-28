@@ -214,9 +214,9 @@
 ;;; ---------------------------------------------------------------------------
 
 (defgeneric slot-names (class)
-  (:documentation "Returns a list of the names of the slots of a class (including
-both direct and inherited slots). It's like class-slot-names but on the
-class, not an instance of the class.")
+  (:documentation "Returns a list of the names of the slots of a class ~
+\(including both direct and inherited slots\). It's like ~
+class-slot-names but on the class, not an instance of the class.")
   (:method ((class class))
            (finalize-class-if-necessary class)
            (mapcar #'slot-definition-name (class-slots class)))
