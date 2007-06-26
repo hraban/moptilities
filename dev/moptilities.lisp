@@ -757,6 +757,7 @@ has all of its initargs correctly set.
 
 (defun ignore-finalization (object)
   "Prevents care-when-finalized from being called on object just before it is garbage collected."
+  (declare (ignorable object))
   #+(or digitool openmcl)
   (ccl:cancel-terminate-when-unreachable object)
   #-(or digitool openmcl)
