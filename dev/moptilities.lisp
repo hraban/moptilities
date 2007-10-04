@@ -536,7 +536,7 @@ description.  Otherwise signal an error if errorp is t."
            #-(or lispworks ecl) 
            (values nil)
            #+(or lispworks ecl)
-           (typep obj 'eql-specializer))
+           (typep thing 'eql-specializer))
   #+digitool
   (:method ((thing cons)) 
            ;; don't ask, don't tell
