@@ -403,7 +403,7 @@ class-slot-names but on the class, not an instance of the class.")
           (mapcar (lambda (super-class)
                     (unless  (member super-class ignore-classes)
                       (apply #'direct-specializers-of super-class args)))
-                  (superclasses class)))))
+                  (append (list class) (superclasses class))))))
 
 ;;; ---------------------------------------------------------------------------
 
