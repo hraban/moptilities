@@ -16,9 +16,10 @@ See the file COPYING for details
   :licence "MIT Style license"
   :description "Test for Common Lisp MOP utilities"
   :components ((:module 
-		"test"
+		"tests"
 		:components ((:file "package")
-			     (:file "tests" :depends-on ("package"))))
+			     (:file "tests" :depends-on ("package"))
+			     (:file "copy-template" :depends-on ("tests"))))
                
                (:module "dev"
                         :components ((:static-file "notes.text"))))

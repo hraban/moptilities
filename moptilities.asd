@@ -29,9 +29,9 @@ See the file COPYING for details
 	      :components ((:static-file "index.lml"))))))
   :in-order-to ((test-op (load-op moptilities-test)))
   :perform (test-op :after (op c)
-                    (describe 
-		     (funcall (intern (symbol-name '#:run-tests) :lift) 
-			      :suite '#:moptilities-test)))
+		    (funcall
+		      (intern (symbol-name '#:run-tests) :lift)
+		      :config :generic))
   :depends-on (:closer-mop))
 
 (defmethod operation-done-p 
