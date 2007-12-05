@@ -719,16 +719,19 @@ has all of its initargs correctly set.
   (apply 
    #'make-instance 
    (type-of object) 
-   (loop 
-     for (nil name nil initargs) in (mapcar (lambda (slot-value)
-                                              (slot-properties 
-                                               object slot-value))
-                                            (slot-names object)) 
-     when (and initargs
-               (slot-boundp object name)) nconc
-     (list (if (listp initargs)
-             (first initargs)
-             initargs) (slot-value object name)))))
+   (loop
+      for (name initargs allocation) in 
+        (mapcar #'(lambda (slot)
+                    (list (slot-definition-name slot)
+                          (slot-definition-initargs slot)
+                          (slot-definition-allocation slot)))
+                (class-slots (class-of object))) 
+      when (and initargs
+                (slot-boundp object name)
+                (not (eql allocation :class)))
+      nconc (list (first initargs)
+                  (slot-value object name)))))
+
 
 (defvar *debugging-finalization* nil
   "When true, finalization messages are printed to *debug-io*")
