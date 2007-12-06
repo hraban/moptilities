@@ -255,7 +255,7 @@ copy-template
 (addtest (test-function-arglist)
   test-2
   (ensure-same (function-arglist 'test-function-arglist-2) 
-               '(&key :a :b) :test 'equal))
+               '(&key a b) :test 'equal))
 
 (defun test-function-arglist-3 (&aux a)
   (declare (ignore a)))

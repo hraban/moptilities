@@ -42,6 +42,6 @@
 	 (b (copy-template a)))
     (ensure-same (tct-a a) (tct-a b))
     (ensure-same (tct-b a) (tct-b b))
-    (ensure-same (tct-c a) (tct-b c))
-    (ensure-same (tct-d a) (tct-b d))))
+    (ensure-same (tct-c a) (tct-c b))
+    (ensure-same (tct-d a) (tct-d b))))
     
