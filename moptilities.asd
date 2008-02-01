@@ -11,11 +11,11 @@ See the file COPYING for details
 
 (defsystem moptilities
   :author "Gary Warren King <gwking@metabang.com>"
-  :version "0.3.8"
+  :version "0.3.9"
   :maintainer "Gary Warren King <gwking@metabang.com>"
   :licence "MIT Style license"
   :description "Common Lisp MOP utilities"
-  :long-description "MOP utilities is designed to provide a common interface between lisps and make the MOP easier to use."
+  :long-description "MOP utilities provide a common interface between lisps and make the MOP easier to use."
 
   :components
   ((:module
@@ -26,7 +26,7 @@ See the file COPYING for details
     "website"
     :components 
     ((:module "source"
-	      :components ((:static-file "index.lml"))))))
+	      :components ((:static-file "index.md"))))))
   :in-order-to ((test-op (load-op moptilities-test)))
   :perform (test-op :after (op c)
 		    (funcall
