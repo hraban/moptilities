@@ -179,16 +179,16 @@
 (defgeneric get-method (function qualifiers &rest specializers)
   (:documentation "")
   (:method ((function symbol) qualifiers &rest specializers)
-           (declare (dynamic-extent specializers))
-           (if (fboundp function)
-             (apply #'get-method
-                    (fboundp function)
-                    qualifiers specializers)
-             nil))
+    (declare (dynamic-extent specializers))
+    (if (fboundp function)
+	(apply #'get-method
+	       (fboundp function)
+	       qualifiers specializers)
+	nil))
   (:method ((function standard-generic-function) qualifiers &rest specializers)
-           (declare (dynamic-extent specializers))
-           (find-method function qualifiers
-               (mapcar #'get-class specializers) nil)))
+    (declare (dynamic-extent specializers))
+    (find-method function qualifiers
+		 (mapcar #'get-class specializers) nil)))
 
 ;;; ---------------------------------------------------------------------------
 
