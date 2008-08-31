@@ -707,7 +707,7 @@ a graph from [CL-Graph][] and want to make a copy of that:
 Yuck!
 
 Copy-template is a reasonable, though not perfect, solution to this 
-problem; it creates a structural copy of an object as such that the copy
+problem; it creates a structural copy of an object such that the copy
 has all of its initargs correctly set. 
 
   [CL-Graph]: http://common-lisp.net/projects/cl-graph/
