@@ -161,6 +161,31 @@
   (ensure-same (subclasses 'l0-a) (subclasses (make-instance 'l0-a)) 
                :test #'equal))
 
+(addtest (test-subclasses)
+  test-class-designator-1
+  (ensure-same (subclasses 'number)
+	       (subclasses (find-class 'number)) :test 'equal))
+
+(addtest (test-subclasses)
+  test-class-designator-2
+  (ensure-same (subclasses 'lift:test-mixin)
+	       (subclasses (allocate-instance (find-class 'test-mixin)))
+	       :test 'equal))
+
+(addtest (test-subclasses)
+  test-proper-1
+  (ensure (find (find-class 'number) (subclasses 'number :proper? nil))))
+
+
+(addtest (test-subclasses)
+  test-proper-2
+  (ensure-null (find (find-class 'number) (subclasses 'number :proper? t))))
+
+(addtest (test-subclasses)
+  test-proper-defaults-to-true
+  (ensure-null (find (find-class 'number) (subclasses 'number))))
+
+
 
 ;;; ---------------------------------------------------------------------------
 ;;; direct-subclasses
