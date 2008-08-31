@@ -423,8 +423,6 @@ the class itself is not included in the mapping. Proper? defaults to nil."
                        (class-direct-subclasses class)))))
       (do-it (get-class class) t))))
 
-;;; ---------------------------------------------------------------------------
-
 (defun subclasses (class &key (proper? t))
   "Returns the subclasses of `class`.
 
@@ -437,8 +435,6 @@ _not_ be included in the result. If `proper?` is nil, then it will.
                             (push class result))
                     :proper? proper?)
     (nreverse result)))
-
-;;; ---------------------------------------------------------------------------
 
 (defun in-order-p (c1 c2)
   (flet ((in-order-at-subclass-p (sub)
