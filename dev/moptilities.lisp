@@ -426,7 +426,12 @@ the class itself is not included in the mapping. Proper? defaults to nil."
 ;;; ---------------------------------------------------------------------------
 
 (defun subclasses (class &key (proper? t))
-  "Returns all of the subclasses of the class including the class itself."
+  "Returns the subclasses of `class`.
+
+Class may be a symbol naming a class, a instance of a class or a class
+object. If `proper?` is true (the default) then the class itself will
+_not_ be included in the result. If `proper?` is nil, then it will.
+"
   (let ((result nil))
     (map-subclasses class (lambda (class)
                             (push class result))
