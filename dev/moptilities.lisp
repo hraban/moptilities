@@ -128,19 +128,6 @@
 
 ;;; ---------------------------------------------------------------------------
 
-(defgeneric subclassp (child parent)
-  (:documentation "Returns t if child and parent both specifies classes and child is a subclass of the parent."))
-
-;;; ---------------------------------------------------------------------------
-
-(defmethod subclassp (child parent)
-  (let ((child-class (get-class child))
-        (parent-class (get-class parent)))
-    (finalize-class-if-necessary child-class)
-    (not (null (find parent-class (superclasses child-class))))))
-
-;;; ---------------------------------------------------------------------------
-
 (defun finalize-class-if-necessary (thing)
   "Finalizes thing if necessary. Thing can be a class, object or symbol naming a class. Returns the class of thing."
   (let ((class (get-class thing)))
