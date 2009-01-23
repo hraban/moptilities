@@ -482,7 +482,10 @@ description.  Otherwise signal an error if errorp is t."
   #+allegro
   (common-lisp-user::arglist symbol)
   #+sbcl
-  (sb-introspect:function-arglist (fdefinition symbol))
+  (funcall 
+   (or (find-symbol (symbol-name '#:function-lambda-list) :sb-introspect)
+       (find-symbol (symbol-name '#:function-arglist) :sb-introspect))
+   (fdefinition symbol))
   #+cmu 
   (cmu-arglist symbol) 
   #-(or digitool openmcl lispworks allegro sbcl cmu)
