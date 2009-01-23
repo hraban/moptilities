@@ -32,7 +32,7 @@ See the file COPYING for details
 		    (funcall
 		      (intern (symbol-name '#:run-tests) :lift)
 		      :config :generic))
-  :depends-on (:closer-mop))
+  :depends-on ((:version :closer-mop "0.50")))
 
 (defmethod operation-done-p 
            ((o test-op) (c (eql (find-system 'moptilities))))
