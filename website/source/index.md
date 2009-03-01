@@ -1,5 +1,5 @@
 {include resources/header.md}
-{set-property title "CL-Markdown - Zany, Zippy -- never Oozy"}
+{set-property title "Moptilities - Zany and Zippy yet never Oozy"}
 
 <div class="contents">
 <div class="system-links">
@@ -23,10 +23,10 @@
 
 ### What it is
 
-Like several other projects on Common-Lisp.net, Moptilities provides a compatibility layer for minor MOP implementation differences. More importantly, it adds some handy reflection capabilities. [TINAA][8] documentation is [available][9].
-
-   [8]: http://common-lisp.net/project/tinaa/
-   [9]: http://common-lisp.net/project/cl-containers/moptilities/documentation/
+Like several other projects on Common-Lisp.net, Moptilities
+provides a compatibility layer for minor MOP implementation
+differences. More importantly, it adds some handy reflection
+capabilities. [TINAA][] documentation is [available][project-documentation].
 
 {anchor mailing-lists}
 
@@ -34,28 +34,28 @@ Like several other projects on Common-Lisp.net, Moptilities provides a compatibi
 
 Moptilities has a single mailing list:
 
-  * [moptilities-devel][]: A list for questions, patches, bug reports, and so on; It's for everything other than    
-  
+  * [moptilities-devel][devel-list]: A list for questions,
+    patches, bug reports, and so on; It's for everything
+    other than
+
 {anchor downloads}
 
 ### Where is it
 
 A [Darcs][] repository is available. The commands are listed below:
 
-       darcs get http://common-lisp.net/project/moptilities
+    darcs get http://common-lisp.net/project/moptilities
 
-Moptilities is [ASDF installable][12]. Its CLiki home is right [where][13] you'd expect.
+Moptilities is [ASDF installable][asdf-install]. Its CLiki home is
+right [where][cliki-home] you'd expect.
 
-   [12]: http://www.cliki.net/asdf-install
-   [13]: http://www.cliki.net/moptilities
-
-There's also a handy [gzipped tar file][14].
-
-   [14]: http://common-lisp.net/project/cl-containers/moptilities/moptilities_latest.tar.gz
+There's also a handy [gzipped tar file][tarball].
 
 {anchor news}
 
 ### What is happening
+
+1 Mar 2009 - tweaks, tweaks, tweaks.
 
 5 Dec 2007 - actually there has been a whole lot happening; it just hasn't been written down! 
 
