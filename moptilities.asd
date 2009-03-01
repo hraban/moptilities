@@ -11,7 +11,7 @@ See the file COPYING for details
 
 (defsystem moptilities
   :author "Gary Warren King <gwking@metabang.com>"
-  :version "0.3.12"
+  :version "0.3.13"
   :maintainer "Gary Warren King <gwking@metabang.com>"
   :licence "MIT Style license"
   :description "Common Lisp MOP utilities"
@@ -32,7 +32,7 @@ See the file COPYING for details
 		    (funcall
 		      (intern (symbol-name '#:run-tests) :lift)
 		      :config :generic))
-  :depends-on ((:version :closer-mop "0.50")))
+  :depends-on ((:version :closer-mop "0.55")))
 
 (defmethod operation-done-p 
            ((o test-op) (c (eql (find-system 'moptilities))))
