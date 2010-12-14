@@ -1,7 +1,6 @@
 <div id="footer">
-{include resources/navigation.md}
 
-### Copyright (c) 2007 Gary Warren King (gwking@metabang.com) 
+### Copyright (c) 2007 - {current-year} Gary Warren King (gwking@metabang.com) 
 
 moptilities has an [MIT style][mit-license] license
 

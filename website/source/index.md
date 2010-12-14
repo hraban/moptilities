@@ -6,9 +6,9 @@
 
   * [Mailing Lists][3]
   * [Getting it][4]
-  * [Documentation][5]
+{remark  * [Documentation][5] }
   * [News][6]
-  * [Test results][tr]
+{remark   * [Test results][tr] }
   * [Changelog][7]
 
    [3]: #mailing-lists
@@ -38,13 +38,18 @@ Moptilities has a single mailing list:
     patches, bug reports, and so on; It's for everything
     other than
 
+If that doesn't work or if the response isn't timely, try 
+emailing [me][mailto:gwking@metabang.com] directly.
+
 {anchor downloads}
 
 ### Where is it
 
-A [Darcs][] repository is available. The commands are listed below:
+metabang.com is slowly switching from [darcs][] to [git][]
+for source control; the current git repository is on
+[github][github-lift] and you can clone it using:
 
-    darcs get http://common-lisp.net/project/moptilities
+    git clone git://github.com/gwkkwg/moptilities
 
 Moptilities is [ASDF installable][asdf-install]. Its CLiki home is
 right [where][cliki-home] you'd expect.
@@ -54,6 +59,8 @@ There's also a handy [gzipped tar file][tarball].
 {anchor news}
 
 ### What is happening
+
+14 December 2010 - moved to git, nothing much else to see here.
 
 1 Mar 2009 - tweaks, tweaks, tweaks.
 
