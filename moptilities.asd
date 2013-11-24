@@ -24,7 +24,7 @@ See the file COPYING for details
 		 (:static-file "notes.text")))
    (:module
     "website"
-    :components 
+    :components
     ((:module "source"
 	      :components ((:static-file "index.md"))))))
   :in-order-to ((test-op (load-op moptilities-test)))
@@ -32,8 +32,8 @@ See the file COPYING for details
 		    (funcall
 		      (intern (symbol-name '#:run-tests) :lift)
 		      :config :generic))
-  :depends-on ((:version :closer-mop "0.55")))
+  :depends-on (:closer-mop))
 
-(defmethod operation-done-p 
+(defmethod operation-done-p
            ((o test-op) (c (eql (find-system 'moptilities))))
   (values nil))

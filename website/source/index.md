@@ -47,7 +47,7 @@ emailing [me][mailto:gwking@metabang.com] directly.
 
 metabang.com is slowly switching from [darcs][] to [git][]
 for source control; the current git repository is on
-[github][github-lift] and you can clone it using:
+[github][github-moptilities] and you can clone it using:
 
     git clone git://github.com/gwkkwg/moptilities
 

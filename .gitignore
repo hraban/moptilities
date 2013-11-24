@@ -15,3 +15,8 @@ lift-local.config
 *.fasl
 
 benchmark-data/
+
+dev/moptilities.allegro-warnings
+moptilities.build-report
+moptilities.tar.gz
+moptilities.tar.gz.asc
