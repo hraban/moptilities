@@ -1,13 +1,6 @@
 ;;;; -*- Mode: Common-Lisp; Package: metabang.moptilities; Base: 10 -*-
 ;;;; some definitions are from the Art of the MOP
 
-(in-package #:cl-user)
-
-#+sbcl
-(eval-when (:compile-toplevel :load-toplevel)
-  (require 'sb-introspect)              ; for function-arglist
-)
-
 (defpackage #:metabang.moptilities
   (:documentation "Moptilities builds on the Lisp Meta-Object Protocol (**MOP**).")
   (:use #:closer-common-lisp)
